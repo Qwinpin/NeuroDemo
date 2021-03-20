@@ -1,0 +1,103 @@
+h1 {
+    color: green;
+}
+
+.box__dragndrop,
+.box__uploading,
+.box__success,
+.box__error {
+  display: none;
+}
+
+.post_header2{
+    background-size:cover;
+    background-repeat:no-repeat;
+    background-position:center;
+    position:relative;
+    color:#fff;
+    height:48vh;
+    min-height:120px;
+    max-height:160px;
+    background-color:var(--bg);
+    margin-top:60px;
+    padding:30px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column}
+    
+.post_header2::after{
+    content:"";
+    position:absolute;
+    top:0;left:0;right:0;bottom:0;
+    z-index:1;
+    background:rgba(10,15,30,0.5)}
+    
+.post_header2 h1{color:inherit}
+
+.post_header2 h1,
+
+.post_header2 p,
+
+.post_header2 h4{position:relative;z-index:2}
+
+
+/* .post_title,
+.post,
+.intro_inner section{
+    max-width:750px;
+    margin:0 auto}
+    @font-face{
+        font-family:'Metropolis';
+        font-style:normal;
+        font-weight:400;
+        src:local("Metropolis Regular"),
+        local("Metropolis-Regular"),
+        url("../fonts/Metropolis-Regular.woff2") 
+        format("woff2"),
+        url("../fonts/Metropolis-Regular.woff") 
+        format("woff")}
+        @font-face{
+            font-family:'Metropolis';
+            font-style:normal;
+            font-weight:300;
+            src:
+            local("Metropolis Light"),
+            local("Metropolis-Light"),
+            url("../fonts/Metropolis-Light.woff2") 
+            format("woff2"),
+            url("../fonts/Metropolis-Light.woff") 
+            format("woff")}
+            @font-face{
+                font-family:'Metropolis';
+                font-style:normal;
+                font-weight:500;
+                src:
+                local("Metropolis Medium"),
+                local("Metropolis-Medium"),
+                url("../fonts/Metropolis-Medium.woff2") 
+                format("woff2"),
+                url("../fonts/Metropolis-Medium.woff") 
+                format("woff")}
+                @font-face{
+                    font-family:'Cookie';
+                    font-style:normal;
+                    font-weight:400;
+                    src:
+                    local("Cookie-Regular"),
+                    url("../fonts/cookie-v10-latin-regular.woff2") 
+                    format("woff2"),
+                    url("../fonts/cookie-v10-latin-regular.woff") 
+                    format("woff")}
+                    @font-face{
+                        font-family:'Volkhov';
+                        font-style:italic;
+                        font-weight:400;
+                        src:
+                        local("Volkhov Italic"),
+                        local("Volkhov-Italic"),
+                        url("../fonts/volkhov-v11-latin-italic.woff2") 
+                        format("woff2"),
+                        url("../fonts/volkhov-v11-latin-italic.woff") 
+                        format("woff")}
+                        *{box-sizing:border-box;-webkit-appearance:none;margin:0;padding:0} */

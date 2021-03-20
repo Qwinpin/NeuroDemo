@@ -17,6 +17,9 @@ pillow==8.0 \
 fastapi \
 uvicorn[standard] \
 nltk \
+jinja2 \
+aiofiles \
+python-multipart \
 git+https://github.com/nlpub/pymystem3 && \
 python -m nltk.downloader all
 
