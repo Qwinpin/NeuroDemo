@@ -1,2 +1,6 @@
 
 *.pyc
+
+*.ipynb
+
+method_photo2paint/stylized-neural-painting/

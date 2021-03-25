@@ -40,18 +40,29 @@ async def load_page_test(request: Request, id: str):
     return templates_methods.TemplateResponse("method_page_{}.html".format(id), {"request": request, "id": id})
 
 @app.post("/file={id}")
-async def image(image: UploadFile = File(...), id: int = 0):
+async def image(image: UploadFile = File(...), id: int = 0, key: str = 'test', num: int = 0):
     # with open('to_process/files/{}'.format(id), 'wb') as f:
     #     f.write(await image.read())
-    try:
-        r = requests.post('http://localhost:9050/file/{}'.format(id), files={'image': await image.read()})
-        res = r.content
-    except:
-        r = {}
+    # print(key, num)
+    if key == 'test':
+        try:
+            r = requests.post('http://localhost:9050/file/{}'.format(id), files={'image': await image.read()})
+            res = r.content
+        except:
+            res = {}
 
-    # print(res)
-    return StreamingResponse(io.BytesIO(res), media_type="image/png",
-        headers={'Access-Control-Allow-Origin': '*'})
+        # print(res)
+        return StreamingResponse(io.BytesIO(res), media_type="image/png",
+            headers={'Access-Control-Allow-Origin': '*'})
+
+    elif key == 'paint':
+        try:
+            r = requests.post('http://localhost:9051/file/{}?num={}'.format(id, num), files={'image': await image.read()})
+            res = r.json()
+        except:
+            res = {}
+
+        return res
 
 # @app.post("/audio")
 # async def image(image: UploadFile = File(...)):
