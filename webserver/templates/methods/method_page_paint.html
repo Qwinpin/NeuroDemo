@@ -15,8 +15,10 @@
   <link rel = 'stylesheet' href = "{{ url_for('static', path='/css/styles.init.css')}}" integrity = 'sha512-kL89XmCENNwZGg2&#43;a//oZqedwbKNh64DLFsrkEO/&#43;40lVBlTdHBLYLI1TQKxILvRl5oecYXVzFZ&#43;oKGMJ4Q/og=='>
   <link rel = 'stylesheet' href = "{{ url_for('static', path='/css/styles.css')}}">
   <script type="text/javascript" src="{{ url_for('static', path='/js/js.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', path='/js/js2.js') }}"></script>
   <script src="https://d3js.org/d3.v6.min.js"></script>
   <script src="https://unpkg.com/d3-simple-slider"></script>
+  <script src="https://d3js.org/d3-ease.v2.min.js"></script>
 
 </head>
 
@@ -64,6 +66,7 @@
   <div class="col">
     Upload your file here:<br>
     <input id='image' required type='file' onChange='upload_image("paint")' enctype="multipart/form-data"/>
+    <!-- <input id='image' required type='file' onChange='update_stroke("2")' enctype="multipart/form-data"/> -->
     <input type="button" id='method_request_button' style="display: none" onClick="make_request(window.method_id)" value="Click Me">
   </div>
 
@@ -92,6 +95,7 @@
 
 
 <script>
+  plot_data({})
   this.method_id = 'test'
 </script>
     

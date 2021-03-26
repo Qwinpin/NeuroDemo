@@ -4,68 +4,69 @@ async function upload_image(key) {
 
     const e = document.getElementById('image').files[0];
 
-    var x = document.getElementById('origin_image')
-    x.setAttribute('src', URL.createObjectURL(e))
-    x.setAttribute('width', 256)
-    x.setAttribute('height', 256)
+    // var x = document.getElementById('origin_image')
+    // x.setAttribute('src', URL.createObjectURL(e))
+    // x.setAttribute('width', 256)
+    // x.setAttribute('height', 256)
+    update_stroke(URL.createObjectURL(e))
 
     let data = new FormData()
     data.append('image', e)
 
     console.log('http://localhost:9000/file=' + rand_id + '?key=' + key)
 
-    if (key == 'paint'){
-        await fetch('http://localhost:9000/file=' + rand_id + '?key=' + key + '&num=' + 3, {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-            //   'content-type': 'multipart/form-data'
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: data
-        }).then(response => response.json())
-            .then(response => {
-                var dct = response['r']
-                // for (var i = 0; i < dct.length; i++){
-                //     dct[i]['painting'] = array2img(dct[i]['painting'])
+    // if (key == 'paint'){
+    //     await fetch('http://localhost:9000/file=' + rand_id + '?key=' + key + '&num=' + 3, {
+    //         method: 'POST',
+    //         mode: 'cors',
+    //         headers: {
+    //         //   'content-type': 'multipart/form-data'
+    //             'Access-Control-Allow-Origin': '*'
+    //         },
+    //         body: data
+    //     }).then(response => response.json())
+    //         .then(response => {
+    //             var dct = response['r']
+    //             // for (var i = 0; i < dct.length; i++){
+    //             //     dct[i]['painting'] = array2img(dct[i]['painting'])
 
-                //     for (var j = 0; j < dct[i]['strokes_before'].length; j++){
-                //         dct[i]['strokes_before'][j] = array2img(dct[i]['strokes_before'][j])
-                //     }
+    //             //     for (var j = 0; j < dct[i]['strokes_before'].length; j++){
+    //             //         dct[i]['strokes_before'][j] = array2img(dct[i]['strokes_before'][j])
+    //             //     }
 
-                //     for (var j = 0; j < dct[i]['strokes_after'].length; j++){
-                //         dct[i]['strokes_after'][j] = array2img(dct[i]['strokes_after'][j])
-                //     }
-                // }
-                // let data = array2img(response['r'][0]['painting'])
-                console.log(dct)
-                plot_data(dct)
+    //             //     for (var j = 0; j < dct[i]['strokes_after'].length; j++){
+    //             //         dct[i]['strokes_after'][j] = array2img(dct[i]['strokes_after'][j])
+    //             //     }
+    //             // }
+    //             // let data = array2img(response['r'][0]['painting'])
+    //             console.log(dct)
+    //             plot_data(dct)
 
-                // var x = document.getElementById('resulting_image')
-                // x.setAttribute('src', dct[0]['painting'])
-                // var x = document.getElementById('resulting_image')
-                // x.textContent = JSON.stringify(response, undefined, 4)
-            })
-    } else{
+    //             // var x = document.getElementById('resulting_image')
+    //             // x.setAttribute('src', dct[0]['painting'])
+    //             // var x = document.getElementById('resulting_image')
+    //             // x.textContent = JSON.stringify(response, undefined, 4)
+    //         })
+    // } else{
 
-        await fetch('http://localhost:9000/file=' + rand_id + '?key=' + key, {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-            //   'content-type': 'multipart/form-data'
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: data
-        }).then(
-            response => response.blob())
-            .then(image => {
-                outside = URL.createObjectURL(image)
+    //     await fetch('http://localhost:9000/file=' + rand_id + '?key=' + key, {
+    //         method: 'POST',
+    //         mode: 'cors',
+    //         headers: {
+    //         //   'content-type': 'multipart/form-data'
+    //             'Access-Control-Allow-Origin': '*'
+    //         },
+    //         body: data
+    //     }).then(
+    //         response => response.blob())
+    //         .then(image => {
+    //             outside = URL.createObjectURL(image)
 
-                var x = document.getElementById('resulting_image')
-                x.setAttribute('src', outside)
-            }
-        )
-    }
+    //             var x = document.getElementById('resulting_image')
+    //             x.setAttribute('src', outside)
+    //         }
+    //     )
+    // }
 }
 
 // async function upload_audio() {
@@ -111,7 +112,6 @@ async function make_request(method_id){
     }
 }
 
-
 function array2img(array){
     var width = array[0].length,
     height = array.length,
@@ -146,7 +146,28 @@ function array2img(array){
 }
 
 
-function plot_data(data){
+function update_stroke(data){
+    d3.selectAll('.stroke')
+        .data([{'text': 'Parameters of stroke shape, number of them depends on **stroke** type'}, 
+        {'text': 'Parameters of stroke color: RGB'}, 
+        {'text': 'Parameters of stroke alpha channel (transparency)'}])
+
+    d3.select('#bg_image_canvas')
+            .attr("xlink:href", data)
+
+    console.log(d3.selectAll('#image_canvas')._groups[0][1])
+    d3.selectAll('#image_canvas')
+        .attr('fill', "url(#bg)")
+}
+
+
+
+
+
+
+
+
+function _plot_data(data){
     var svg = d3.select(".result")
         .append("svg")
             .attr("height", 1200)
