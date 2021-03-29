@@ -44,19 +44,19 @@ class DCGAN_32(nn.Module):
         x = self.batchnorm2d_1(x)
         x = self.relu(x)
         
-        buffer[0] = x[:1].detach().cpu().numpy().astype(np.float16).tolist()
+        buffer[0] = x[0].detach().cpu().numpy().astype(np.float16).tolist()
         x = self.convT2d_2(x)
         x = self.batchnorm2d_2(x)
         x = self.relu(x)
-        buffer[1] = x[:1].detach().cpu().numpy().astype(np.float16).tolist()
+        buffer[1] = x[0].detach().cpu().numpy().astype(np.float16).tolist()
         
         x = self.convT2d_3(x)
         x = self.batchnorm2d_3(x)
         x = self.relu(x)
-        buffer[2] = x[:1].detach().cpu().numpy().astype(np.float16).tolist()
+        buffer[2] = x[0].detach().cpu().numpy().astype(np.float16).tolist()
         
         x = self.convT2d_4(x)
-        buffer[3] = x[:1].detach().cpu().numpy().astype(np.float16).tolist()
+        buffer[3] = x[0].detach().cpu().numpy().astype(np.float16).tolist()
 
         return x[:,0:3,:,:], x[:,3:6,:,:], buffer
     
@@ -79,15 +79,15 @@ class PixelShuffleNet_32(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
-        buffer[0] = x[:1].detach().cpu().numpy().astype(np.float16).tolist()
+        buffer[0] = x[0].detach().cpu().numpy().astype(np.float16).tolist()
         
         x = x.view(-1, 8, 16, 16)
         x = F.relu(self.conv1(x))
-        buffer[1] = x[:1].detach().cpu().numpy().astype(np.float16).tolist()
+        buffer[1] = x[0].detach().cpu().numpy().astype(np.float16).tolist()
         
         x = self.pixel_shuffle(self.conv2(x))
         x = x.view(-1, 3, 32, 32)
-        buffer[2] = x[:1].detach().cpu().numpy().astype(np.float16).tolist()
+        buffer[2] = x[0].detach().cpu().numpy().astype(np.float16).tolist()
         return x, buffer
     
 
@@ -335,6 +335,8 @@ def processing(image, num):
     history = []
     pt.step_id = 0
     for pt.m_grid in [2, 3, 4]:
+        if len(history) >= 2:
+            break
         pt.img_batch = utils.img2patches(pt.img_, pt.m_grid, pt.net_G.out_size).to(device)
         pt.G_final_pred_canvas = CANVAS_tmp
 
@@ -347,9 +349,13 @@ def processing(image, num):
         pt.optimizer_x = optim.RMSprop([pt.x_ctt, pt.x_color, pt.x_alpha], lr=pt.lr, centered=True)
 
         for pt.anchor_id in range(0, pt.m_strokes_per_block):
+            if len(history) >= 2:
+                break
             pt.stroke_sampler(pt.anchor_id)
             iters_per_stroke = int(500 / pt.m_strokes_per_block)
             for i in range(iters_per_stroke):
+                if len(history) >= 2:
+                    break
                 if pt.step_id % 50 == 0:
                     step = {}
                     step['grid'] = pt.m_grid

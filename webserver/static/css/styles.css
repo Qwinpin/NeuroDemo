@@ -108,8 +108,8 @@ body{
   }
   
   .custom-header {
-    /* fill: white; */
-    stroke-width: 2px;
+    fill: rgb(31, 29, 29);
+    stroke-width: 1px;
     -webkit-animation: glowing 5500ms infinite !important;
     -moz-animation: glowing 5500ms infinite  !important;
     -o-animation: glowing 5500ms infinite  !important;
@@ -159,7 +159,7 @@ body{
   
   .glowing_line_main{
     /* fill: white; */
-    stroke-width: 2px;
+    stroke-width: 5px;
     -webkit-animation: glowing_line 2000ms infinite !important;
     -moz-animation: glowing_line 2000ms infinite  !important;
     -o-animation: glowing_line 2000ms infinite  !important;
@@ -171,10 +171,17 @@ body{
               shape-rendering: crispEdges;
   }
 
-
+rect{
+  /* fill: rgb(31, 29, 29); */
+}
 .stroke_text{
     font-family: "Helvetica", "Helvetica", monospace;
     font-size: 24pt;
+    fill: rgb(202, 202, 202);
+}
+.nn_text{
+    font-family: "Helvetica", "Helvetica", monospace;
+    font-size: 12pt;
     fill: rgb(202, 202, 202);
 }
 
@@ -189,6 +196,10 @@ body{
 .nn{
     fill: rgb(31, 29, 29);
 }
+.nn_sub{
+    fill: rgb(31, 29, 29);
+}
+
 
 #predict{
     fill: rgb(31, 29, 29);

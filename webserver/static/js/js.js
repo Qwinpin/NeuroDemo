@@ -8,65 +8,68 @@ async function upload_image(key) {
     // x.setAttribute('src', URL.createObjectURL(e))
     // x.setAttribute('width', 256)
     // x.setAttribute('height', 256)
-    update_stroke(URL.createObjectURL(e))
+    update_image(URL.createObjectURL(e))
 
     let data = new FormData()
     data.append('image', e)
 
     console.log('http://localhost:9000/file=' + rand_id + '?key=' + key)
 
-    // if (key == 'paint'){
-    //     await fetch('http://localhost:9000/file=' + rand_id + '?key=' + key + '&num=' + 3, {
-    //         method: 'POST',
-    //         mode: 'cors',
-    //         headers: {
-    //         //   'content-type': 'multipart/form-data'
-    //             'Access-Control-Allow-Origin': '*'
-    //         },
-    //         body: data
-    //     }).then(response => response.json())
-    //         .then(response => {
-    //             var dct = response['r']
-    //             // for (var i = 0; i < dct.length; i++){
-    //             //     dct[i]['painting'] = array2img(dct[i]['painting'])
+    if (key == 'paint'){
+        await fetch('http://localhost:9000/file=' + rand_id + '?key=' + key + '&num=' + 3, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+            //   'content-type': 'multipart/form-data'
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: data
+        }).then(response => response.json())
+            .then(response => {
+                var dct = response['r']
+                // for (var i = 0; i < dct.length; i++){
+                //     dct[i]['painting'] = array2img(dct[i]['painting'])
 
-    //             //     for (var j = 0; j < dct[i]['strokes_before'].length; j++){
-    //             //         dct[i]['strokes_before'][j] = array2img(dct[i]['strokes_before'][j])
-    //             //     }
+                //     for (var j = 0; j < dct[i]['strokes_before'].length; j++){
+                //         dct[i]['strokes_before'][j] = array2img(dct[i]['strokes_before'][j])
+                //     }
 
-    //             //     for (var j = 0; j < dct[i]['strokes_after'].length; j++){
-    //             //         dct[i]['strokes_after'][j] = array2img(dct[i]['strokes_after'][j])
-    //             //     }
-    //             // }
-    //             // let data = array2img(response['r'][0]['painting'])
-    //             console.log(dct)
-    //             plot_data(dct)
+                //     for (var j = 0; j < dct[i]['strokes_after'].length; j++){
+                //         dct[i]['strokes_after'][j] = array2img(dct[i]['strokes_after'][j])
+                //     }
+                // }
+                // let data = array2img(response['r'][0]['painting'])
+                window.data_processed = dct
+                console.log(dct)
+                update_stroke(data_processed)
+                update_predict(data_processed)
+                // plot_data(dct)
 
-    //             // var x = document.getElementById('resulting_image')
-    //             // x.setAttribute('src', dct[0]['painting'])
-    //             // var x = document.getElementById('resulting_image')
-    //             // x.textContent = JSON.stringify(response, undefined, 4)
-    //         })
-    // } else{
+                // var x = document.getElementById('resulting_image')
+                // x.setAttribute('src', dct[0]['painting'])
+                // var x = document.getElementById('resulting_image')
+                // x.textContent = JSON.stringify(response, undefined, 4)
+            })
+    } else{
 
-    //     await fetch('http://localhost:9000/file=' + rand_id + '?key=' + key, {
-    //         method: 'POST',
-    //         mode: 'cors',
-    //         headers: {
-    //         //   'content-type': 'multipart/form-data'
-    //             'Access-Control-Allow-Origin': '*'
-    //         },
-    //         body: data
-    //     }).then(
-    //         response => response.blob())
-    //         .then(image => {
-    //             outside = URL.createObjectURL(image)
+        await fetch('http://localhost:9000/file=' + rand_id + '?key=' + key, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+            //   'content-type': 'multipart/form-data'
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: data
+        }).then(
+            response => response.blob())
+            .then(image => {
+                outside = URL.createObjectURL(image)
 
-    //             var x = document.getElementById('resulting_image')
-    //             x.setAttribute('src', outside)
-    //         }
-    //     )
-    // }
+                var x = document.getElementById('resulting_image')
+                x.setAttribute('src', outside)
+            }
+        )
+    }
 }
 
 // async function upload_audio() {
@@ -146,18 +149,66 @@ function array2img(array){
 }
 
 
-function update_stroke(data){
-    d3.selectAll('.stroke')
-        .data([{'text': 'Parameters of stroke shape, number of them depends on **stroke** type'}, 
-        {'text': 'Parameters of stroke color: RGB'}, 
-        {'text': 'Parameters of stroke alpha channel (transparency)'}])
-
+function update_image(data){
     d3.select('#bg_image_canvas')
-            .attr("xlink:href", data)
+        .attr("xlink:href", data)
 
-    console.log(d3.selectAll('#image_canvas')._groups[0][1])
+    // console.log(d3.selectAll('#image_canvas')._groups[0][1])
     d3.selectAll('#image_canvas')
         .attr('fill', "url(#bg)")
+        .style('fill', "url(#bg)")
+}
+
+function update_predict(data){
+    console.log(current_step)
+    // response['r']
+    var image = array2img(data['painting'][current_step])
+    d3.select('#predict_canvas')
+        .attr("xlink:href", image)
+
+    // console.log(d3.selectAll('#image_canvas')._groups[0][1])
+    d3.selectAll('#predict')
+        .attr('fill', "url(#predicted_image)")
+        .style('fill', "url(#predicted_image)")
+}
+
+function update_stroke(data){
+    d3.selectAll('.stroke')
+        .data([{'text': 'Parameters of stroke shape, number of them depends on **stroke** type', 
+                'value': data['shape_before'][current_step]}, 
+        {'text': 'Parameters of stroke color: RGB', 
+        'value': data['color_before'][current_step]}, 
+        {'text': 'Parameters of stroke alpha channel (transparency)', 
+        'value': data['alpha_before'][current_step]}])
+
+    // console.log(d3.selectAll('.dcgan_sub_layer').data())
+    var data_to_plot = {
+        'dcgan_plot': [{'text': 'Generate color of each pixel of new image according to input strokes parameters'}],
+        'dcgan_sub_layer': [{'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [{'name': 'ConvTranspose2d'}, {'name': 'BatchNormalization'}, {'name': 'ReLU'}]},
+        {'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [{'name': 'ConvTranspose2d'}, {'name': 'BatchNormalization'}, {'name': 'ReLU'}]},
+        {'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [{'name': 'ConvTranspose2d'}, {'name': 'BatchNormalization'}, {'name': 'ReLU'}]},
+        {'type': 'convT', '_text': 'Deconvolution - increases shape of input', 'layers': [{'name': 'ConvTranspose2d'}]}]
+    }
+    var dcgan_states_tmp = d3.selectAll('.dcgan_sub_layer').data()
+    for (var i = 0; i < data_to_plot['dcgan_sub_layer'].length; i++){
+        data_to_plot['dcgan_sub_layer'][i]['state'] = data['states'][current_step]['dcgan'][i]
+    }
+
+    draw_dcgan(data_to_plot)
+    d3.selectAll('.dcgan_sub_layer')
+        .data(data_to_plot['dcgan_sub_layer'])
+
+    d3.selectAll('.dcgan_sub_layer')
+        .data(data_to_plot['dcgan_sub_layer'])
+    // console.log(dcgan_states_tmp)
+    // d3.selectAll('.dcgan_sub_layer')
+    //     .data(dcgan_states_tmp)
+    //     .enter()
+    //     .append('g')
+    //     .on('click', function(event, d){
+    //         console.log(1, d)
+    //     })
+
 }
 
 
@@ -356,3 +407,17 @@ function update(data, value){
             return array2img(d[Number(value)])
         })
 }
+
+temp_response = { 
+    step: [{'text': 'text', 'value': null}], 
+    grid: [{'text': 'text', 'value': null}], 
+    stroke_number: [{'text': 'text', 'value': null}], 
+    painting: [{'text': 'text', 'value': null}], 
+    strokes_before: [{'text': 'text', 'value': null}], 
+    strokes_after: [{'text': 'text', 'value': null}], 
+    states: [{'text': 'text', 'value': null}], 
+    shape_before: [{'text': 'text', 'value': null}], 
+    color_before: [{'text': 'text', 'value': null}], 
+    alpha_before: [{'text': 'text', 'value': null}] 
+}
+
