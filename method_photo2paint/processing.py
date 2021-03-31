@@ -334,8 +334,9 @@ def processing(image, num):
 
     history = []
     pt.step_id = 0
-    for pt.m_grid in [2, 3, 4]:
-        if len(history) >= 2:
+    his_lim = 10
+    for pt.m_grid in [1, 2, 3, 4, 5]:
+        if len(history) >= his_lim:
             break
         pt.img_batch = utils.img2patches(pt.img_, pt.m_grid, pt.net_G.out_size).to(device)
         pt.G_final_pred_canvas = CANVAS_tmp
@@ -349,18 +350,14 @@ def processing(image, num):
         pt.optimizer_x = optim.RMSprop([pt.x_ctt, pt.x_color, pt.x_alpha], lr=pt.lr, centered=True)
 
         for pt.anchor_id in range(0, pt.m_strokes_per_block):
-            if len(history) >= 2:
+            if len(history) >= his_lim:
                 break
             pt.stroke_sampler(pt.anchor_id)
             iters_per_stroke = int(500 / pt.m_strokes_per_block)
+            # save_per_each = iters_per_stroke
             for i in range(iters_per_stroke):
-                if len(history) >= 2:
-                    break
-                if pt.step_id % 50 == 0:
-                    step = {}
-                    step['grid'] = pt.m_grid
-                    step['step'] = pt.step_id
-                    step['stroke'] = pt.anchor_id            
+                if len(history) >= his_lim:
+                    break         
 
                 pt.G_pred_canvas = CANVAS_tmp
 
@@ -377,7 +374,6 @@ def processing(image, num):
                 v1 = _normalize_strokes(pt, init_x)
                 v1 = _shuffle_strokes_and_reshape(pt, v1)
 
-
                 pt._drawing_step_states()
                 pt._backward_x()
 
@@ -386,35 +382,45 @@ def processing(image, num):
                 pt.x_alpha.data = torch.clamp(pt.x_alpha.data, 0, 1)
 
                 pt.optimizer_x.step()
-                pt.step_id += 1
 
                 init_x = torch.cat([pt.x_ctt, pt.x_color, pt.x_alpha], dim=-1)
                 v2 = _normalize_strokes(pt, init_x)
                 v2 = _shuffle_strokes_and_reshape(pt, v2)
 
-                if pt.step_id % 50 == 0:
-                    strokes_before = [(_render(pt, strokes_renderer, v1[:pt.m_strokes_per_block, i:i+1, :], save_jpgs=False, save_video=False) * 255).astype(np.uint8).tolist() for i in range(v1.shape[1])]
-                    strokes_after = [(_render(pt, strokes_renderer, v2[:pt.m_strokes_per_block, i:i+1, :], save_jpgs=False, save_video=False) * 255).astype(np.uint8).tolist() for i in range(v2.shape[1])]
+                # if pt.step_id % save_per_each == 0 and pt.step_id != 0:
+                    
+                pt.step_id += 1
+            
+            # if pt.step_id % save_per_each == 0 and pt.step_id != 0:
+        step = {}
+        step['grid'] = pt.m_grid
+        step['step'] = pt.step_id
+        step['stroke'] = pt.anchor_id
+        
+        strokes_before = [(_render(pt, strokes_renderer, v1[:pt.m_strokes_per_block, i:i+1, :], save_jpgs=False, save_video=False) * 255).astype(np.uint8).tolist() for i in range(v1.shape[1])]
+        strokes_after = [(_render(pt, strokes_renderer, v2[:pt.m_strokes_per_block, i:i+1, :], save_jpgs=False, save_video=False) * 255).astype(np.uint8).tolist() for i in range(v2.shape[1])]
 
-                    step['strokes_before'] = strokes_before
-                    step['strokes_after'] = strokes_after
-                    step['states'] = states['states_before']
+        step['strokes_before'] = strokes_before
+        step['strokes_after'] = strokes_after
+        step['states'] = states['states_before']
 
-                    step['shape_after'] = pt.x_ctt.detach().cpu().numpy().astype(np.float16).tolist()
-                    step['color_after'] = pt.x_color.detach().cpu().numpy().astype(np.float16).tolist()
-                    step['alpha_after'] = pt.x_alpha.detach().cpu().numpy().astype(np.float16).tolist()
+        step['shape_after'] = pt.x_ctt.detach().cpu().numpy().astype(np.float16).tolist()
+        step['color_after'] = pt.x_color.detach().cpu().numpy().astype(np.float16).tolist()
+        step['alpha_after'] = pt.x_alpha.detach().cpu().numpy().astype(np.float16).tolist()
 
-                    step['shape_before'] = stroke_parameters['shape_before']
-                    step['color_before'] = stroke_parameters['color_before']
-                    step['alpha_before'] = stroke_parameters['alpha_before']
+        step['shape_before'] = stroke_parameters['shape_before']
+        step['color_before'] = stroke_parameters['color_before']
+        step['alpha_before'] = stroke_parameters['alpha_before']
 
-                    v = pt._normalize_strokes(pt.x)
-                    v = pt._shuffle_strokes_and_reshape(v)
-                    tmp_params = np.concatenate([history_params, v], axis=1)
-                    tmp_canvas = (_render(pt, pt.rderr, tmp_params, save_jpgs=False, save_video=False) * 255).astype(np.uint8)
+        v = pt._normalize_strokes(pt.x)
+        v = pt._shuffle_strokes_and_reshape(v)
+        tmp_params = np.concatenate([history_params, v], axis=1)
+        tmp_canvas = (_render(pt, pt.rderr, tmp_params, save_jpgs=False, save_video=False) * 255).astype(np.uint8)
 
-                    step['painting'] = tmp_canvas.tolist()
-                    history.append(step)
+        step['painting'] = tmp_canvas.tolist()
+        history.append(step)
+
+            
 
         v = pt._normalize_strokes(pt.x)
         v = pt._shuffle_strokes_and_reshape(v)

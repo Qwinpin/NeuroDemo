@@ -115,6 +115,23 @@ body{
     -o-animation: glowing 5500ms infinite  !important;
     animation: glowing 5500ms infinite  !important;
   }
+  .custom-header-simple {
+    fill: rgb(31, 29, 29);
+    stroke-width: 1px;
+    /* -webkit-animation: glowing 5500ms infinite !important;
+    -moz-animation: glowing 5500ms infinite  !important;
+    -o-animation: glowing 5500ms infinite  !important;
+    animation: glowing 5500ms infinite  !important; */
+  }
+
+  .custom-header-selected {
+    fill: rgb(31, 29, 29);
+    stroke-width: 5px;
+    /* -webkit-animation: glowing 5500ms infinite !important;
+    -moz-animation: glowing 5500ms infinite  !important;
+    -o-animation: glowing 5500ms infinite  !important;
+    animation: glowing 5500ms infinite  !important; */
+  }
 
 
   @-webkit-keyframes glowing_line {
@@ -181,8 +198,10 @@ rect{
 }
 .nn_text{
     font-family: "Helvetica", "Helvetica", monospace;
-    font-size: 12pt;
+    font-size: 16px;
     fill: rgb(202, 202, 202);
+    color: rgb(202, 202, 202);
+    word-break: break-all
 }
 
 .stroke_rect{
@@ -213,17 +232,48 @@ rect{
     fill: rgb(31, 29, 29);
 }
 
+#description{
+  min-height: 400px;
+}
+
 .tooltip {	
-    position: absolute;			
-    text-align: left;			
-    width: 240px;					
-    height: 120px;					
+    position: absolute;		
+    display: inline-flex;	
+    text-align: left;		
+    /* width: 240px;					
+    height: 240px;					 */
+    max-width: 500px;
     padding: 2px;			
     font-family: "Helvetica", "Helvetica", monospace;	
     background: rgb(31, 29, 29);
     border: 2px solid #491d88;		
     border-radius: 6px;			
     pointer-events: none;			
+}
+
+.tooltip_shapes {	
+    font-size: 10pt;
+    position: absolute;		
+    /* display: inline-flex;	 */
+    text-align: center;
+    vertical-align: middle;
+    line-height: normal;	
+    /* width: 294px;					 */
+    /* height: 25px;					 */
+    padding: 2px;			
+    font-family: "Helvetica", "Helvetica", monospace;	
+    background: rgb(31, 29, 29);
+    border: 2px solid #491d88;		
+    border-radius: 6px;			
+    pointer-events: none;			
+}
+
+.tooltip_image {	
+    position: absolute;
+    max-width: 500px;
+    max-height: 500px;
+    min-width: 200px;
+    min-height: 200px
 }
 
 /* .post_title,

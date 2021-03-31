@@ -8,7 +8,6 @@ async function upload_image(key) {
     // x.setAttribute('src', URL.createObjectURL(e))
     // x.setAttribute('width', 256)
     // x.setAttribute('height', 256)
-    update_image(URL.createObjectURL(e))
 
     let data = new FormData()
     data.append('image', e)
@@ -39,10 +38,30 @@ async function upload_image(key) {
                 //     }
                 // }
                 // let data = array2img(response['r'][0]['painting'])
+                // d3.select('svg').selectAll().remove()
+                if (!(typeof loaded != "undefined")) {
+                    plot_data(null)
+                    plot_stroke_desc()
+                    plot_states(null)
+                    plot_layer_desc()
+                }
+
+                d3.select('.layer_desc').select('#desc_text').html(("" + 'Step: ' + current_step + "<br>" +
+                "" + 'Number of canvases: ' + current_epoch * current_epoch + "<br>" + 
+                "" + general_info[current_epoch]['text'] + ""))
+                // d3.selectAll('.dcgan_plot').remove()
+                // d3.selectAll('.states').remove()
+                // d3.selectAll('.layer_desc').remove()
                 window.data_processed = dct
                 console.log(dct)
+                update_image(URL.createObjectURL(e))
                 update_stroke(data_processed)
                 update_predict(data_processed)
+                update_stroke_rendered(data_processed)
+                // console.log(d3.select('slider'))
+                sliderSimple
+                    .max(data_processed['painting'].length)
+                gSimple.call(sliderSimple)
                 // plot_data(dct)
 
                 // var x = document.getElementById('resulting_image')
@@ -150,56 +169,97 @@ function array2img(array){
 
 
 function update_image(data){
-    d3.select('#bg_image_canvas')
+    d3.select('#image_canvas_pattern_image')
         .attr("xlink:href", data)
 
     // console.log(d3.selectAll('#image_canvas')._groups[0][1])
     d3.selectAll('#image_canvas')
-        .attr('fill', "url(#bg)")
-        .style('fill', "url(#bg)")
+        .attr('fill', "url(#image_canvas_pattern)")
+        .style('fill', "url(#image_canvas_pattern)")
 }
 
 function update_predict(data){
-    console.log(current_step)
+    // console.log(current_step)
     // response['r']
     var image = array2img(data['painting'][current_step])
-    d3.select('#predict_canvas')
+    d3.select('#predict_canvas_pattern_image')
         .attr("xlink:href", image)
 
     // console.log(d3.selectAll('#image_canvas')._groups[0][1])
-    d3.selectAll('#predict')
-        .attr('fill', "url(#predicted_image)")
-        .style('fill', "url(#predicted_image)")
+    d3.selectAll('#predict_canvas')
+        .attr('fill', "url(#predict_canvas_pattern)")
+        .style('fill', "url(#predict_canvas_pattern)")
+}
+
+function update_stroke_rendered(data){
+    // console.log(current_step)
+    // response['r']
+    for (var i = 0; i < 3; i++){
+        var image = array2img(data['strokes_after'][current_step][i])
+        d3.select('#stroke_rendered_pattern_image_' + i)
+            .attr("xlink:href", image)
+    }
+    
+        // console.log(d3.selectAll('#image_canvas')._groups[0][1])
+
+    d3.selectAll('.stroke_rendered')
+        .attr('fill', function(d, i){ 
+            // console.log(d, i)
+            return "url(#stroke_rendered_pattern_" + i + ")"
+        })
+        .style('fill', function(d, i){ 
+            return "url(#stroke_rendered_pattern_" + i + ")"
+        })
+    
 }
 
 function update_stroke(data){
     d3.selectAll('.stroke')
         .data([{'text': 'Parameters of stroke shape, number of them depends on **stroke** type', 
-                'value': data['shape_before'][current_step]}, 
+                'value': data['shape_before']}, 
         {'text': 'Parameters of stroke color: RGB', 
-        'value': data['color_before'][current_step]}, 
+        'value': data['color_before']}, 
         {'text': 'Parameters of stroke alpha channel (transparency)', 
-        'value': data['alpha_before'][current_step]}])
+        'value': data['alpha_before']}])
 
     // console.log(d3.selectAll('.dcgan_sub_layer').data())
     var data_to_plot = {
         'dcgan_plot': [{'text': 'Generate color of each pixel of new image according to input strokes parameters'}],
-        'dcgan_sub_layer': [{'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [{'name': 'ConvTranspose2d'}, {'name': 'BatchNormalization'}, {'name': 'ReLU'}]},
-        {'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [{'name': 'ConvTranspose2d'}, {'name': 'BatchNormalization'}, {'name': 'ReLU'}]},
-        {'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [{'name': 'ConvTranspose2d'}, {'name': 'BatchNormalization'}, {'name': 'ReLU'}]},
-        {'type': 'convT', '_text': 'Deconvolution - increases shape of input', 'layers': [{'name': 'ConvTranspose2d'}]}]
+        'dcgan_sub_layer': [{'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [
+            {'name': 'ConvTranspose2d', 'input_shape': 'None; 1; 10', 'output_shape': 'None; 4; 4, 512'}, 
+            {'name': 'BatchNormalization'}, 
+            {'name': 'ReLU'}], 
+            'state': [[[0,1,2]]]},
+        {'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [
+            {'name': 'ConvTranspose2d', 'input_shape': 'None; 4; 4; 512', 'output_shape': 'None; 32; 32, 256'}, 
+            {'name': 'BatchNormalization'}, 
+            {'name': 'ReLU'}], 'state': [[[0,1,2]]]},
+        {'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [
+            {'name': 'ConvTranspose2d', 'input_shape': 'None; 32; 32, 256', 'output_shape': 'None; 128; 128; 128'}, 
+            {'name': 'BatchNormalization'}, 
+            {'name': 'ReLU'}], 'state': [[[0,1,2]]]},
+        {'type': 'convT', '_text': 'Deconvolution - increases shape of input', 'layers': [{'name': 'ConvTranspose2d', 'input_shape': 'None; 128; 128, 128', 'output_shape': 'None; 256; 256; 3'}]}]
     }
     var dcgan_states_tmp = d3.selectAll('.dcgan_sub_layer').data()
     for (var i = 0; i < data_to_plot['dcgan_sub_layer'].length; i++){
-        data_to_plot['dcgan_sub_layer'][i]['state'] = data['states'][current_step]['dcgan'][i]
+        data_to_plot['dcgan_sub_layer_states'] = data['states']
     }
 
     draw_dcgan(data_to_plot)
-    d3.selectAll('.dcgan_sub_layer')
-        .data(data_to_plot['dcgan_sub_layer'])
 
-    d3.selectAll('.dcgan_sub_layer')
-        .data(data_to_plot['dcgan_sub_layer'])
+    var new_data = [{'text': 'Parameters of stroke shape, number of them depends on stroke type'}, 
+        {'text': 'Parameters of stroke color: RGB'}, 
+        {'text': 'Parameters of stroke alpha channel (transparency)'}]
+
+    // let tmp = []
+    // for (var i = 0; i < data_to_plot['color_before']; i++){
+    //     tmp.push(data_to_plot['color_before'][i]
+    // }
+    // d3.selectAll('.dcgan_sub_layer')
+    //     .data(data_to_plot['dcgan_sub_layer'])
+
+    // d3.selectAll('.dcgan_sub_layer')
+    //     .data(data_to_plot['dcgan_sub_layer'])
     // console.log(dcgan_states_tmp)
     // d3.selectAll('.dcgan_sub_layer')
     //     .data(dcgan_states_tmp)
