@@ -26,6 +26,7 @@ async function upload_image(key) {
         }).then(response => response.json())
             .then(response => {
                 var dct = response['r']
+                window.data_processed = dct
                 // for (var i = 0; i < dct.length; i++){
                 //     dct[i]['painting'] = array2img(dct[i]['painting'])
 
@@ -44,6 +45,7 @@ async function upload_image(key) {
                     plot_stroke_desc()
                     plot_states(null)
                     plot_layer_desc()
+                    plot_stroke_desc()
                 }
 
                 d3.select('.layer_desc').select('#desc_text').html(("" + 'Step: ' + current_step + "<br>" +
@@ -52,7 +54,6 @@ async function upload_image(key) {
                 // d3.selectAll('.dcgan_plot').remove()
                 // d3.selectAll('.states').remove()
                 // d3.selectAll('.layer_desc').remove()
-                window.data_processed = dct
                 console.log(dct)
                 update_image(URL.createObjectURL(e))
                 update_stroke(data_processed)
@@ -214,42 +215,20 @@ function update_stroke_rendered(data){
 }
 
 function update_stroke(data){
-    d3.selectAll('.stroke')
-        .data([{'text': 'Parameters of stroke shape, number of them depends on **stroke** type', 
-                'value': data['shape_before']}, 
-        {'text': 'Parameters of stroke color: RGB', 
-        'value': data['color_before']}, 
-        {'text': 'Parameters of stroke alpha channel (transparency)', 
-        'value': data['alpha_before']}])
+    // d3.selectAll('.stroke')
+    //     .data([{'text': 'Parameters of stroke shape, number of them depends on **stroke** type', 
+    //             'value': data['shape_before']}, 
+    //     {'text': 'Parameters of stroke color: RGB', 
+    //     'value': data['color_before']}, 
+    //     {'text': 'Parameters of stroke alpha channel (transparency)', 
+    //     'value': data['alpha_before']}])
 
-    // console.log(d3.selectAll('.dcgan_sub_layer').data())
-    var data_to_plot = {
-        'dcgan_plot': [{'text': 'Generate color of each pixel of new image according to input strokes parameters'}],
-        'dcgan_sub_layer': [{'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [
-            {'name': 'ConvTranspose2d', 'input_shape': 'None; 1; 10', 'output_shape': 'None; 4; 4, 512'}, 
-            {'name': 'BatchNormalization'}, 
-            {'name': 'ReLU'}], 
-            'state': [[[0,1,2]]]},
-        {'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [
-            {'name': 'ConvTranspose2d', 'input_shape': 'None; 4; 4; 512', 'output_shape': 'None; 32; 32, 256'}, 
-            {'name': 'BatchNormalization'}, 
-            {'name': 'ReLU'}], 'state': [[[0,1,2]]]},
-        {'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [
-            {'name': 'ConvTranspose2d', 'input_shape': 'None; 32; 32, 256', 'output_shape': 'None; 128; 128; 128'}, 
-            {'name': 'BatchNormalization'}, 
-            {'name': 'ReLU'}], 'state': [[[0,1,2]]]},
-        {'type': 'convT', '_text': 'Deconvolution - increases shape of input', 'layers': [{'name': 'ConvTranspose2d', 'input_shape': 'None; 128; 128, 128', 'output_shape': 'None; 256; 256; 3'}]}]
-    }
-    var dcgan_states_tmp = d3.selectAll('.dcgan_sub_layer').data()
-    for (var i = 0; i < data_to_plot['dcgan_sub_layer'].length; i++){
-        data_to_plot['dcgan_sub_layer_states'] = data['states']
-    }
+    // // console.log(d3.selectAll('.dcgan_sub_layer').data())
 
-    draw_dcgan(data_to_plot)
 
-    var new_data = [{'text': 'Parameters of stroke shape, number of them depends on stroke type'}, 
-        {'text': 'Parameters of stroke color: RGB'}, 
-        {'text': 'Parameters of stroke alpha channel (transparency)'}]
+    // var new_data = [{'text': 'Parameters of stroke shape, number of them depends on stroke type'}, 
+    //     {'text': 'Parameters of stroke color: RGB'}, 
+    //     {'text': 'Parameters of stroke alpha channel (transparency)'}]
 
     // let tmp = []
     // for (var i = 0; i < data_to_plot['color_before']; i++){

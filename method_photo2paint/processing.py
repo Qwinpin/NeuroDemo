@@ -334,9 +334,10 @@ def processing(image, num):
 
     history = []
     pt.step_id = 0
-    his_lim = 10
+    his_lim = 2
     for pt.m_grid in [1, 2, 3, 4, 5]:
         if len(history) >= his_lim:
+            print(1)
             break
         pt.img_batch = utils.img2patches(pt.img_, pt.m_grid, pt.net_G.out_size).to(device)
         pt.G_final_pred_canvas = CANVAS_tmp
@@ -349,12 +350,14 @@ def processing(image, num):
 
         pt.optimizer_x = optim.RMSprop([pt.x_ctt, pt.x_color, pt.x_alpha], lr=pt.lr, centered=True)
 
+        print(2)
         for pt.anchor_id in range(0, pt.m_strokes_per_block):
             if len(history) >= his_lim:
                 break
             pt.stroke_sampler(pt.anchor_id)
             iters_per_stroke = int(500 / pt.m_strokes_per_block)
             # save_per_each = iters_per_stroke
+            print(3)
             for i in range(iters_per_stroke):
                 if len(history) >= his_lim:
                     break         
@@ -422,6 +425,7 @@ def processing(image, num):
 
             
 
+        print(4)
         v = pt._normalize_strokes(pt.x)
         v = pt._shuffle_strokes_and_reshape(v)
         PARAMS = np.concatenate([PARAMS, v], axis=1)

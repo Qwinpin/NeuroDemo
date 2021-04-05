@@ -1,5 +1,6 @@
 function plot_data(data){
     window.loaded = true
+    window.stroke_desc_name = 'shape_before'
     window.current_step = 0
     window.current_epoch = 1
     window.general_info = {
@@ -38,7 +39,7 @@ function plot_data(data){
         .domain([0, 300])
         .range([10, 1400])
 
-    window.vertical_margin = 60
+    window.vertical_margin = 50
     window.horisontal_margin = 50
     window.stroke_block_width = 50
     window.stroke_block_height = 5
@@ -71,50 +72,21 @@ function plot_data(data){
         .style("opacity", 0);
 
     window.tooltip_shapes_image = d3.select('.result')
-        .append("img")
+        .append("div")
         .classed('tooltip_image', true)	
-        .style("opacity", 0);
+        .style("opacity", 0)
 
-    window.sliderSimple = d3
-        .sliderBottom()
-        .min(1)
-        .max(15)
-        .width(x(200))
-        .ticks(1)
-        .step(1)
-        .default(0)
-        .on('onchange', val => {
-            if (typeof data_processed != "undefined") {
-                current_step = val - 1
-                current_epoch = data_processed['grid'][current_step]
-                update_stroke(data_processed)
-                update_predict(data_processed)
-                update_stroke_rendered(data_processed)
-                plot_state_update_step()
+    tooltip_shapes_image.append('img')
+        .classed('tooltip_image_img', true)
+        .classed('tooltip_image', true)
 
-                console.log(('Step: ' + current_step + 'Number of canvases: ' + current_epoch * current_epoch + '' + general_info[current_epoch]['text']))
-                d3.select('.layer_desc').select('#desc_text').html(("" + 'Step: ' + current_step + "<br>" +
-                "" + 'Number of canvases: ' + current_epoch * current_epoch + "<br>" + 
-                "" + general_info[current_epoch]['text'] + ""))
-                // "<tspan x='0' dy='1.2em'>" + "</tspan>"
-            }
-            
-        });
-    
-    window.gSimple = svg
-        .append('g')
-        .attr('transform', function(d) { 
-            return 'translate(' + (x(200) - x(300) / 2) + 
-            ',' + x(0) + ')'; })
-
-    gSimple.call(sliderSimple);
 
     index = -1
     var stroke = svg
         .selectAll('.stroke')
-        .data([{'text': 'Parameters of stroke shape, number of them depends on stroke type'}, 
-               {'text': 'Parameters of stroke color: RGB'}, 
-               {'text': 'Parameters of stroke alpha channel (transparency)'}])
+        .data([{'text': 'Parameters of stroke shape, number of them depends on stroke type', 'name': 'shape_before', 'data': data_processed['shape_before']}, 
+               {'text': 'Parameters of stroke color: RGB', 'name': 'color_before', 'data': data_processed['color_before']}, 
+               {'text': 'Parameters of stroke alpha channel (transparency)', 'name': 'alpha_before', 'data': data_processed['alpha_before']}])
         .enter()
         .append('g')
         .attr('transform', function(d) {
@@ -124,7 +96,10 @@ function plot_data(data){
                 ',' + (x(vertical_margin) + index * x((stroke_block_height + stroke_block_height_margin))) + ')'; })
         .classed("stroke", true)
         .on("click", function(event, d){
-            console.log(d)
+            console.log(d3.select(this))
+            d3.selectAll('.stroke').selectAll('rect').classed('custom-header-selected', false)
+            d3.select(this).selectAll('rect').classed('custom-header-selected', true)
+            update_stroke_desc(d.name, data_processed)
         })
         .on("mousemove", function(event, d){
             // console.log(event)
@@ -153,6 +128,41 @@ function plot_data(data){
                 .attr("ry", 6)
         .classed("custom-header", true)
         .classed("stroke_rect", true)
+
+        window.sliderSimple = d3
+        .sliderBottom()
+        .min(1)
+        .max(15)
+        .width(x(200))
+        .ticks(1)
+        .step(1)
+        .default(0)
+        .on('onchange', val => {
+            if (typeof data_processed != "undefined") {
+                current_step = val - 1
+                current_epoch = data_processed['grid'][current_step]
+                update_stroke(data_processed)
+                update_predict(data_processed)
+                update_stroke_rendered(data_processed)
+                plot_state_update_step()
+                update_stroke_desc(stroke_desc_name, data_processed)
+
+                // console.log(('Step: ' + current_step + 'Number of canvases: ' + current_epoch * current_epoch + '' + general_info[current_epoch]['text']))
+                d3.select('.layer_desc').select('#desc_text').html(("" + 'Step: ' + current_step + "<br>" +
+                "" + 'Number of canvases: ' + current_epoch * current_epoch + "<br>" + 
+                "" + general_info[current_epoch]['text'] + ""))
+                // "<tspan x='0' dy='1.2em'>" + "</tspan>"
+            }
+            
+        });
+    
+    window.gSimple = svg
+        .append('g')
+        .attr('transform', function(d) { 
+            return 'translate(' + (x(200) - x(300) / 2) + 
+            ',' + (edge_height + x(vertical_margin) + 25) + ')'; })
+
+    gSimple.call(sliderSimple);
 
     index = -1
     d3.selectAll('.stroke')
@@ -188,7 +198,6 @@ function plot_data(data){
         // .classed("custom-header", true)
 
     nn
-        .append('g')
         .selectAll('.nn')
         .data([{'text': 'Neural network architecture (high level abstraction) used for stroke parameters searching', 'input_shape': 'None; 1; 10', 'output_shape': 'None; 32; 32; 3'}])
         .enter()
@@ -251,7 +260,7 @@ function plot_data(data){
     }
     var nn_sub = nn
         .selectAll('.nn_sub')
-        .data([{'text': 'DCGAN', '_text': 'shading network'}, {'text': 'PixelShuffle', '_text': ': rasterization network'}])
+        .data([{'text': 'DCGAN', '_text': ': shading network<br>Click to see architecture'}, {'text': 'PixelShuffle', '_text': ': rasterization network<br>Click to see architecture'}])
         .enter()
             .append('g')
             .classed("nn_sub", true)
@@ -281,12 +290,38 @@ function plot_data(data){
                     // .duration(500)		
                     .style("opacity", 0);	
             })
-            // .on("click", function(event, d){
-            //     console.log(d)
-            //     if (d.text == 'DCGAN'){
-            //         draw_dcgan(data)
-            //     }
-            // })
+            .on("click", function(event, d){
+                console.log(d)
+                d3.selectAll('.nn_sub').selectAll('rect').classed('custom-header-selected', false)
+                d3.select(this).selectAll('rect').classed('custom-header-selected', true)
+                if (d.text == 'DCGAN'){
+                    d3.selectAll('.dcgan_plot').remove()
+                    var data_to_plot = {
+                        'dcgan_plot': [{'text': 'Generate color of each pixel of new image according to input strokes parameters'}],
+                        'dcgan_sub_layer': [{'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [
+                            {'name': 'ConvTranspose2d', 'input_shape': 'None; 1; 10', 'output_shape': 'None; 4; 4, 512'}, 
+                            {'name': 'BatchNormalization'}, 
+                            {'name': 'ReLU'}], 
+                            'state': [[[0,1,2]]]},
+                        {'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [
+                            {'name': 'ConvTranspose2d', 'input_shape': 'None; 4; 4; 512', 'output_shape': 'None; 32; 32, 256'}, 
+                            {'name': 'BatchNormalization'}, 
+                            {'name': 'ReLU'}], 'state': [[[0,1,2]]]},
+                        {'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [
+                            {'name': 'ConvTranspose2d', 'input_shape': 'None; 32; 32, 256', 'output_shape': 'None; 128; 128; 128'}, 
+                            {'name': 'BatchNormalization'}, 
+                            {'name': 'ReLU'}], 'state': [[[0,1,2]]]},
+                        {'type': 'convT', '_text': 'Deconvolution - increases shape of input', 'layers': [{'name': 'ConvTranspose2d', 'input_shape': 'None; 128; 128, 128', 'output_shape': 'None; 256; 256; 3'}]}]
+                    }
+                    var dcgan_states_tmp = d3.selectAll('.dcgan_sub_layer').data()
+                    for (var i = 0; i < data_to_plot['dcgan_sub_layer'].length; i++){
+                        data_to_plot['dcgan_sub_layer_states'] = data_processed['states']
+                    }
+                
+                    draw_dcgan(data_to_plot)
+
+                }
+            })
         
     nn_sub
         .append('rect')
@@ -330,16 +365,30 @@ function plot_data(data){
             .on("mousemove", function(event, d){
                 // console.log(event)
                 // console.log(d3.select('#image_canvas_pattern_image').attr('xlink:href'))
-                tooltip_shapes_image
+                tooltip
                     .style('opacity', 1.0);
                 tooltip_shapes_image
-                    .attr('src', d3.select('#image_canvas_pattern_image').attr('xlink:href'))
+                    .style('opacity', 1.0);
+                    tooltip
                     .style("left", (event.layerX+ 15) + "px")
                     .style("top", (event.layerY - 28) + "px")
+                tooltip_shapes_image
+                    .style("left", (event.layerX+ 15) + "px")
+                    .style("top", (event.layerY + 28) + "px")
+                tooltip_shapes_image
+                    .select('img')
+                    .attr('src', d3.select('#image_canvas_pattern_image').attr('xlink:href'))
                     // .attr("left", event.layerX + "")		
                     // .attr("top", event.layerY - 28 + "");
+                
+                tooltip
+                    .html('Reference image which we want to paint')
             })
             .on("mouseout", function(d) {		
+                tooltip
+                    // .transition()		
+                    // .duration(500)		
+                    .style("opacity", 0);		
                 tooltip_shapes_image
                     // .transition()		
                     // .duration(500)		
@@ -378,16 +427,31 @@ function plot_data(data){
             .on("mousemove", function(event, d){
                 // console.log(event)
                 // console.log(d3.select('#predict_canvas').attr('xlink:href'))
+                tooltip
+                    .style('opacity', 1.0); 
                 tooltip_shapes_image
                     .style('opacity', 1.0);
-                tooltip_shapes_image
-                    .attr('src', d3.select('#predict_canvas_pattern_image').attr('xlink:href'))
+
+                tooltip
                     .style("left", (event.layerX+ 15) + "px")
                     .style("top", (event.layerY - 28) + "px")
+                tooltip_shapes_image
+                    .style("left", (event.layerX+ 15) + "px")
+                    .style("top", (event.layerY + 28) + "px")
+                tooltip_shapes_image
+                    .select('img')
+                    .attr('src', d3.select('#predict_canvas_pattern_image').attr('xlink:href'))
                     // .attr("left", event.layerX + "")		
                     // .attr("top", event.layerY - 28 + "");
+                
+                tooltip
+                    .html('Current resulting painting')
             })
             .on("mouseout", function(d) {		
+                tooltip
+                    // .transition()		
+                    // .duration(500)		
+                    .style("opacity", 0);	
                 tooltip_shapes_image
                     // .transition()		
                     // .duration(500)		
@@ -446,16 +510,31 @@ function plot_data(data){
             .on("mousemove", function(event, d, i){
                 // console.log(d)
                 // console.log(d3.select('#image_canvas_pattern_image').attr('xlink:href'))
+                tooltip
+                .style('opacity', 1.0);
                 tooltip_shapes_image
                     .style('opacity', 1.0);
-                tooltip_shapes_image
-                    .attr('src', d3.select('#stroke_rendered_pattern_image_' + d.i).attr('xlink:href'))
+
+                    tooltip
                     .style("left", (event.layerX+ 15) + "px")
                     .style("top", (event.layerY - 28) + "px")
+                tooltip_shapes_image
+                    .style("left", (event.layerX+ 15) + "px")
+                    .style("top", (event.layerY + 28) + "px")
+                tooltip_shapes_image
+                    .select('img')
+                    .attr('src', d3.select('#stroke_rendered_pattern_image_' + d.i).attr('xlink:href'))
                     // .attr("left", event.layerX + "")		
                     // .attr("top", event.layerY - 28 + "");
+                
+                    tooltip
+                    .html('Example of stroke rendered on this step')
             })
             .on("mouseout", function(d) {		
+                tooltip
+                    // .transition()		
+                    // .duration(500)		
+                    .style("opacity", 0);	
                 tooltip_shapes_image
                     // .transition()		
                     // .duration(500)		
@@ -477,6 +556,47 @@ function plot_data(data){
                 // .attr("xlink:href", "none")
                 .attr('id', 'stroke_rendered_pattern_image_' + i)
     }
+
+    var loss = svg.append('g')
+        .attr('id', 'loss')
+        .attr('transform', 'translate(' + (50.0 + edge_width + x(horisontal_margin)) + ',' + (x(vertical_margin) - (2 * canvas_width / 3)) +  ')')
+        .attr("width", (canvas_width))
+        .attr("height", (canvas_width)/3)
+        .on("mousemove", function(event, d, i){
+            // console.log(d)
+            // console.log(d3.select('#image_canvas_pattern_image').attr('xlink:href'))
+            tooltip
+                .style('opacity', 1.0)
+                .style("left", (event.layerX+ 15) + "px")
+                .style("top", (event.layerY - 28) + "px")
+                .html('Loss function used to optimize current stroke parameters. This paper propose usage of Sinkhorn distance in order to avoid zero-gradient problem: if generated stroke A is not overlap with expected\
+                stroke B, loss is constant, which leads to zero-gradient and training problems. Nevertheless they remains classic pixel-wise error. They use them in conjection with some regularizers.')
+            // tooltip_shapes_image
+            //     .attr('src', d3.select('#stroke_rendered_pattern_image_' + d.i).attr('xlink:href'))
+            //     // .attr("left", event.layerX + "")		
+            //     // .attr("top", event.layerY - 28 + "");
+        })
+        .on("mouseout", function(d) {		
+            tooltip
+                // .transition()		
+                // .duration(500)		
+                .style("opacity", 0);	
+        })
+
+    loss
+        .append('rect')
+        .attr("width", (canvas_width))
+        .attr("height", (canvas_width)/3)
+        .classed('custom-header', true)
+
+    loss
+        .append('text')
+        .text('Loss')
+        .attr('y', (canvas_width)/3/1.25)
+        .attr('x', (canvas_width)/2)
+        .style("text-anchor", "middle")
+        .classed('nn_text', true)
+
 
 
 
@@ -502,12 +622,23 @@ function plot_data(data){
     //         .y(function(d) { return d['y'] })
     //     )
     var arrows = svg
-        // .append('g')
+        .append('g')
 
     draw_arrow(arrows, 
         [{
+            'x': Number(Array.from(loss._groups[0][0].attributes[1].nodeValue.matchAll(pattern))[0][0]) + (canvas_width) / 2,
+            'y': Number(Array.from(loss._groups[0][0].attributes[1].nodeValue.matchAll(pattern))[1][0]), 
+        }, 
+        {
             'x': Number(Array.from(image._groups[0][0].attributes[2].nodeValue.matchAll(pattern))[0][0]) + (canvas_width) / 2,
             'y': Number(Array.from(image._groups[0][0].attributes[2].nodeValue.matchAll(pattern))[1][0]) + (canvas_width), 
+        }, ]  , 0
+    )
+
+    draw_arrow(arrows, 
+        [{
+            'x': Number(Array.from(loss._groups[0][0].attributes[1].nodeValue.matchAll(pattern))[0][0]) + (canvas_width) / 2,
+            'y': Number(Array.from(loss._groups[0][0].attributes[1].nodeValue.matchAll(pattern))[1][0]) + (canvas_width)/3, 
         }, 
         {
             'x': Number(Array.from(predict._groups[0][0].attributes[2].nodeValue.matchAll(pattern))[0][0]) + (canvas_width) / 2,
@@ -515,29 +646,29 @@ function plot_data(data){
         }, ]  , 0
     )
 
-    // console.log(stroke._groups)
-    // for (var i=0; i<stroke._groups[0].length; i++){
-    //     draw_arrow(arrows, 
-    //         [
-    //         {
-    //             'x': Number(Array.from(nn._groups[0][0].attributes[2].nodeValue.matchAll(pattern))[0][0]),
-    //             'y': Number(Array.from(stroke._groups[0][i].parentElement.attributes[0].nodeValue.matchAll(pattern))[1][0]) + x(stroke_block_height) / 2, 
-    //         }, {
-    //             'x': Number(Array.from(stroke._groups[0][i].parentElement.attributes[0].nodeValue.matchAll(pattern))[0][0]) + x(stroke_block_width),
-    //             'y': Number(Array.from(stroke._groups[0][i].parentElement.attributes[0].nodeValue.matchAll(pattern))[1][0]) + x(stroke_block_height) / 2, 
-    //         }] ,
-    //         0,)
-    //     }
+    console.log(nn._groups)
+    for (var i=0; i<stroke._groups[0].length; i++){
+        draw_arrow(arrows, 
+            [
+            {
+                'x': Number(Array.from(nn._groups[0][0].childNodes[0].attributes[2].nodeValue.matchAll(pattern))[0][0]),
+                'y': Number(Array.from(stroke._groups[0][i].parentElement.attributes[0].nodeValue.matchAll(pattern))[1][0]) + x(stroke_block_height) / 2, 
+            }, {
+                'x': Number(Array.from(stroke._groups[0][i].parentElement.attributes[0].nodeValue.matchAll(pattern))[0][0]) + x(stroke_block_width),
+                'y': Number(Array.from(stroke._groups[0][i].parentElement.attributes[0].nodeValue.matchAll(pattern))[1][0]) + x(stroke_block_height) / 2, 
+            }] ,
+            0,)
+        }
 
-    // draw_arrow(arrows, 
-    //     [{
-    //         'x': Number(Array.from(stroke_rendered._groups[0][0].attributes[2].nodeValue.matchAll(pattern))[0][0]),
-    //         'y': Number(Array.from(stroke_rendered._groups[0][0].attributes[2].nodeValue.matchAll(pattern))[1][0]) + (stroke_rendered_width + stroke_rendered_margin / 2), 
-    //     },{
-    //         'x': Number(Array.from(nn._groups[0][0].attributes[2].nodeValue.matchAll(pattern))[0][0]) + x(nn_block_width),
-    //         'y': Number(Array.from(stroke_rendered._groups[0][0].attributes[2].nodeValue.matchAll(pattern))[1][0]) + (stroke_rendered_width + stroke_rendered_margin / 2), 
-    //     },], 0
-    //     )
+    draw_arrow(arrows, 
+        [{
+            'x': Number(Array.from(stroke_rendered._groups[0][0].attributes[2].nodeValue.matchAll(pattern))[0][0]),
+            'y': Number(Array.from(stroke_rendered._groups[0][0].attributes[2].nodeValue.matchAll(pattern))[1][0]) + (stroke_rendered_width + stroke_rendered_margin / 2), 
+        },{
+            'x': Number(Array.from(nn._groups[0][0].childNodes[0].attributes[2].nodeValue.matchAll(pattern))[0][0]) + x(nn_block_width),
+            'y': Number(Array.from(stroke_rendered._groups[0][0].attributes[2].nodeValue.matchAll(pattern))[1][0]) + (stroke_rendered_width + stroke_rendered_margin / 2), 
+        },], 0
+        )
 
     draw_arrow(arrows, 
         [{
@@ -585,11 +716,11 @@ function plot_data(data){
         },
         {
             'x': Number(Array.from(stroke._groups[0][0].parentElement.attributes[0].nodeValue.matchAll(pattern))[0][0]) - 19,
-            'y': Number(Array.from(image._groups[0][0].attributes[2].nodeValue.matchAll(pattern))[1][0]) + (canvas_width)/ 2, 
+            'y': Number(Array.from(loss._groups[0][0].attributes[1].nodeValue.matchAll(pattern))[1][0]) + (canvas_width)/3/2, 
         },
         {
-            'x': Number(Array.from(image._groups[0][0].attributes[2].nodeValue.matchAll(pattern))[0][0]),
-            'y': Number(Array.from(image._groups[0][0].attributes[2].nodeValue.matchAll(pattern))[1][0]) + (canvas_width)/ 2, 
+            'x': Number(Array.from(loss._groups[0][0].attributes[1].nodeValue.matchAll(pattern))[0][0]),
+            'y': Number(Array.from(loss._groups[0][0].attributes[1].nodeValue.matchAll(pattern))[1][0]) + (canvas_width)/3/2, 
         }] , 0
     )
 }
@@ -669,7 +800,7 @@ function draw_dcgan(data){
         .append('g')
         .attr('transform', function(d) { 
             return 'translate(' + x(horisontal_margin) + 
-            ',' + (x(vertical_margin) + x(nn_block_height)) + ')'; })
+            ',' + (x(vertical_margin) + x(nn_block_height) + 25) + ')'; })
         .classed('dcgan_plot', true)
 
     plot
@@ -749,6 +880,8 @@ function draw_dcgan(data){
             // console.log(d)
             return dcgan_y(sub_layer_height / 3 * d.layers.length + 1)
         })
+        .attr("rx", 6)
+        .attr("ry", 6)
         .classed("custom-header", true)
         .classed("sub_layer", true)
 
@@ -768,7 +901,8 @@ function draw_dcgan(data){
     'by Reducing Internal Covariate Shift.'},
     'ReLU': {'text': 
         "Applies the rectified linear unit function element-wise:\
-         ReLU(x)=(x)+=max⁡(0,x)\text{ReLU}(x) = (x)^+ = \max(0, x)"}}
+         ReLU(x)=(x)+=max⁡(0,x)\text{ReLU}(x) = (x)^+ = \max(0, x)"
+        }}
 
     var dcgan_layers = dcgan_sub_layer.selectAll('g')
         .data(function(d){
@@ -887,7 +1021,7 @@ function draw_dcgan(data){
 
 
 function plot_states(state){
-    console.log('SSSS')
+    // console.log('SSSS')
     // var rows = state[0].length;
     // var cols = rows
 
@@ -913,7 +1047,7 @@ function plot_states(state){
     console.log(plot)
 
     plot.append('g')
-        .attr('height', plot_height-10)
+        .attr('height', plot_height-20)
         .attr('transform', function(d) {return 'translate(0, 10)'})
         .classed('states_heatmap', true)
     
@@ -1052,37 +1186,127 @@ function plot_layer_desc(){
         .html('<div id="desc_text" class="nn_text" style="overflow-y: auto; height:' + layer_desc_height + 'px; width:' + layer_desc_width + 'px"></div>')
 }
 
-function plot_layer_desc_update(name){
-    // console.log(name)
-    // d3.select('.layer_desc').select('text')
-    //     .html(layers_desc[name]['text'])
-}
-
-
-function update_stroke_desc(data){
-    d3.selectAll('.stroke')
-    
-}
-
 
 function plot_stroke_desc(){
     var plot_input = svg
         .append('g')
-        .attr('width', x(horisontal_margin)/2)
+        .attr('width', x(horisontal_margin)/1.5)
         .attr('height', x(stroke_block_height) + 2 * x((stroke_block_height + stroke_block_height_margin)))
         .attr('transform', function(d) { 
             return 'translate(' + 0 + 
             ',' + x(vertical_margin) + ')'
         })
         .classed('input_desc', true)
+    // plot_input
+    //     .append('text')
+    //     .attr('x', x(horisontal_margin)/2)
+    //     .attr('y', x(stroke_block_height) + 2 * x((stroke_block_height + stroke_block_height_margin)) / 2)
+    //     .text('Strokes values')
 
     plot_input
-        .append('rect')
-        .attr('width', x(horisontal_margin)/2)
-        .attr('height', x(stroke_block_height) + 2 * x((stroke_block_height + stroke_block_height_margin)))
-        .classed("custom-header", true)
+            .append('g')
+            .attr('height', x(stroke_block_height) + 2 * x((stroke_block_height + stroke_block_height_margin)))
+            .attr('transform', function(d) { 
+                return 'translate(' + 0 + 
+                ',' + 0 + ')'
+            })
+            .classed('stroke_heatmap', true)
+            // .append('rect')
+            // .attr('width', x(horisontal_margin)/2)
+            // .attr('height', x(stroke_block_height) + 2 * x((stroke_block_height + stroke_block_height_margin)))
+            // .classed("custom-header", true)
 
-    plot_input
-        // .append()
+        
 
+
+}
+
+function update_stroke_desc(name, data){
+    stroke_desc_name = name
+    var desc = {'shape_before': 'Number of columns: number of strokes to show<br> Rows: shape described as quadratic Bezier curve<br> x_0, y_0, x_1, y_1, x_2, y_2(control points),<br> r_0, r_2(thickness);',
+                'color_before': 'Number of columns: number of strokes to show<br> Rows: color<br> R_0, G_0, B_0(color of point 0),<br> R_1, G_1, B_1(color of point 2)',
+                'alpha_before': 'Number of columns: number of strokes to show<br> Rows: A (alpha channel)'}
+    // console.log(name, data)
+    var data_stroke = data[name]
+    var width = x(horisontal_margin)/2 / 3
+    // console.log(data_stroke[0][0].length)
+    var height = (x(stroke_block_height) + 2 * x((stroke_block_height + stroke_block_height_margin))) / data_stroke[0][0][0].length
+    var myColor = d3.scaleLinear()
+        .range(['#9eacc9', "#491d88"])
+        .domain([-1,1])
+
+    var state_dicts = []
+    for (var i = 0; i<data_stroke[current_step][0].length; i++){
+        for (var j = 0; j<data_stroke[current_step][0][i].length; j++){
+            let tmp = [];
+            for (k in data_stroke){
+                tmp.push(data_stroke[k][0][i][j]);
+            }
+            // console.log(tmp)
+            state_dicts.push({'x': i * width, 'y': j * height, 'val': tmp})
+        }
+    }
+    console.log(state_dicts)
+    var plot = svg
+        .select('.stroke_heatmap')
+        .selectAll('rect')
+        .data(state_dicts)
+
+    plot
+        .enter()
+        .append("rect")
+        .attr("x", function(d) { return (d.x) })
+        .attr("y", function(d) { return (d.y) })
+        .attr("width", width )
+        .attr("height", height )
+        // .attr('text', state_dicts.length)
+        // .classed("custom-header", true)
+        .attr("fill", function(d) { return myColor(d.val[current_step])} )
+        .on("mousemove", function(event, d){
+            // console.log(d)
+            tooltip
+                .style('opacity', 1.0);
+            tooltip
+                .html(desc[name])
+                .style("left", (event.layerX+ 15) + "px")		
+                .style("top", (event.layerY - 28) + "px")
+                // .attr("left", event.layerX + "")		
+                // .attr("top", event.layerY - 28 + "");
+        })
+        .on("mouseout", function(d) {		
+            tooltip
+                // .transition()		
+                // .duration(500)		
+                .style("opacity", 0);	
+        })
+
+    
+    plot
+        .attr("x", function(d) { return (d.x) })
+        .attr("y", function(d) { return (d.y) })
+        .attr("width", width )
+        .attr("height", height )
+        .attr('text', state_dicts.length)
+        // .classed("custom-header", true)
+        .attr("fill", function(d) { return myColor(d.val[current_step])} )
+        .on("mousemove", function(event, d){
+            // console.log(d)
+            tooltip
+                .style('opacity', 1.0);
+            tooltip
+                .html(desc[name])
+                .style("left", (event.layerX+ 15) + "px")		
+                .style("top", (event.layerY - 28) + "px")
+                // .attr("left", event.layerX + "")		
+                // .attr("top", event.layerY - 28 + "");
+        })
+        .on("mouseout", function(d) {		
+            tooltip
+                // .transition()		
+                // .duration(500)		
+                .style("opacity", 0);	
+        })
+
+    
+    plot.exit().remove()
 }
