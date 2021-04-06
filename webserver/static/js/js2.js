@@ -26,10 +26,40 @@ function plot_data(data){
         5: {'text': 'Final result: there are a lot of strokes from broad one to a small and precise.'}
     }
 
+
+    window.layers_desc = {'ConvTranspose2d': {'text': 
+        'Applies a 2D transposed convolution operator over an' +
+        'input image composed of several input planes.' +
+        'This module can be seen as the gradient of Conv2d'  +
+        'with respect to its input. It is also known as a'  +
+        'fractionally-strided convolution or a deconvolution'  +
+        '(although it is not an actual deconvolution operation).'},
+        'BatchNormalization': {'text': 
+        'Applies Batch Normalization over a 4D input (a'  +
+        'mini-batch of 2D inputs with additional channel'  +
+        'dimension) as described in the paper Batch'  +
+        'Normalization: Accelerating Deep Network Training'  +
+        'by Reducing Internal Covariate Shift.'},
+    'ReLU': {'text': 
+        "Applies the rectified linear unit function element-wise:\
+         ReLU(x)=(x)+=max⁡(0,x)\text{ReLU}(x) = (x)^+ = \max(0, x)"
+    },
+    'Conv2D': {'text': 'Applies a 2D convolution over an input signal composed of several input planes.\
+\
+    In the simplest case, the output value of the layer with input size (N,Cin,H,W)(N, C_{\text{in}}, H, W)(N,Cin​,H,W) and output (N,Cout,Hout,Wout)(N, C_{\text{out}}, H_{\text{out}}, W_{\text{out}})(N,Cout​,Hout​,Wout​) can be precisely described as:\
+    out(Ni,Coutj)=bias(Coutj)+∑k=0Cin−1weight(Coutj,k)⋆input(Ni,k)\text{out}(N_i, C_{\text{out}_j}) = \text{bias}(C_{\text{out}_j}) + \sum_{k = 0}^{C_{\text{in}} - 1} \text{weight}(C_{\text{out}_j}, k) \star \text{input}(N_i, k)\
+    out(Ni​,Coutj​​)=bias(Coutj​​)+k=0∑Cin​−1​weight(Coutj​​,k)⋆input(Ni​,k)\
+    \
+    where ⋆\star⋆ is the valid 2D cross-correlation operator, NNN is a batch size, CCC denotes a number of channels, HHH is a height of input planes in pixels, and WWW is width in pixels.'},
+    'Linear': {'text': 'Applies a linear transformation to the incoming data: y=xAT+by = xA^T + by=xAT+b '},
+    'PixelShuffle': {'text': 'Rearranges elements in a tensor of shape (∗,C×r2,H,W)(*, C \times r^2, H, W)(∗,C×r2,H,W) to a tensor of shape (∗,C,H×r,W×r)(*, C, H \times r, W \times r)(∗,C,H×r,W×r) , where r is an upscale factor.\
+\
+    This is useful for implementing efficient sub-pixel convolution with a stride of 1/r1/r1/r .'}
+}
     
     window.svg = d3.select(".result")
         .append("svg")
-        .attr("height", 2400)
+        .attr("height", 1200)
         .attr('transform', 'translate(0, 10)')
         .attr("width", 2000)
         .append('g')
@@ -96,7 +126,7 @@ function plot_data(data){
                 ',' + (x(vertical_margin) + index * x((stroke_block_height + stroke_block_height_margin))) + ')'; })
         .classed("stroke", true)
         .on("click", function(event, d){
-            console.log(d3.select(this))
+            // console.log(d3.select(this))
             d3.selectAll('.stroke').selectAll('rect').classed('custom-header-selected', false)
             d3.select(this).selectAll('rect').classed('custom-header-selected', true)
             update_stroke_desc(d.name, data_processed)
@@ -291,11 +321,12 @@ function plot_data(data){
                     .style("opacity", 0);	
             })
             .on("click", function(event, d){
-                console.log(d)
+                // console.log(d)
                 d3.selectAll('.nn_sub').selectAll('rect').classed('custom-header-selected', false)
                 d3.select(this).selectAll('rect').classed('custom-header-selected', true)
                 if (d.text == 'DCGAN'){
                     d3.selectAll('.dcgan_plot').remove()
+                    d3.selectAll('.pixelshuffle_plot').remove()
                     var data_to_plot = {
                         'dcgan_plot': [{'text': 'Generate color of each pixel of new image according to input strokes parameters'}],
                         'dcgan_sub_layer': [{'type': 'convT', '_text': 'Deconvolution - increases shape of input + BatchNormalization + ReLU', 'layers': [
@@ -320,6 +351,11 @@ function plot_data(data){
                 
                     draw_dcgan(data_to_plot)
 
+                }
+                else{
+                    d3.selectAll('.dcgan_plot').remove()
+                    d3.selectAll('.pixelshuffle_plot').remove()
+                    plot_pixelshuffle()
                 }
             })
         
@@ -811,7 +847,7 @@ function draw_dcgan(data){
         .attr("ry", 6)
         .classed("custom-header-simple", true)
 
-    shift_v = dcgan_y(0)
+    shift_v = dcgan_y(2)
     var dcgan_sub_layer = plot
         .selectAll('.dcgan_sub_layer')
         .data(data['dcgan_sub_layer'])
@@ -839,7 +875,7 @@ function draw_dcgan(data){
             // console.log(event, d)
             d3.selectAll('.dcgan_sub_layer').selectAll('rect').classed('custom-header-selected', false)
             d3.select(this).selectAll('.sub_layer').classed('custom-header-selected', true)
-            plot_state_update(d.state, d.i)
+            plot_state_update(data_processed['states'], d.i, 'dcgan')
         })
         .on("mousemove", function(event, d){
             // console.log(event, d)
@@ -886,24 +922,6 @@ function draw_dcgan(data){
         .classed("sub_layer", true)
 
 
-    window.layers_desc = {'ConvTranspose2d': {'text': 
-    'Applies a 2D transposed convolution operator over an' +
-    'input image composed of several input planes.' +
-    'This module can be seen as the gradient of Conv2d'  +
-    'with respect to its input. It is also known as a'  +
-    'fractionally-strided convolution or a deconvolution'  +
-    '(although it is not an actual deconvolution operation).'},
-    'BatchNormalization': {'text': 
-    'Applies Batch Normalization over a 4D input (a'  +
-    'mini-batch of 2D inputs with additional channel'  +
-    'dimension) as described in the paper Batch'  +
-    'Normalization: Accelerating Deep Network Training'  +
-    'by Reducing Internal Covariate Shift.'},
-    'ReLU': {'text': 
-        "Applies the rectified linear unit function element-wise:\
-         ReLU(x)=(x)+=max⁡(0,x)\text{ReLU}(x) = (x)^+ = \max(0, x)"
-        }}
-
     var dcgan_layers = dcgan_sub_layer.selectAll('g')
         .data(function(d){
             // console.log(d)
@@ -914,7 +932,6 @@ function draw_dcgan(data){
         .datum(function(d, i){ d['i'] = i; return d})
         .on('click', function(event, d){
             // console.log(d)
-            plot_layer_desc_update(d.name)
         })
         .on("mousemove", function(event, d){
             // console.log(d)
@@ -1044,7 +1061,7 @@ function plot_states(state){
         .attr('width', plot_width)
         .attr('height', plot_height)
         .classed("states", true)
-    console.log(plot)
+    // console.log(plot)
 
     plot.append('g')
         .attr('height', plot_height-20)
@@ -1075,7 +1092,9 @@ function plot_states(state){
 }
 
 
-function plot_state_update(state, block_number){
+function plot_state_update(state, block_number, nn_name){
+    console.log(state, block_number, nn_name)
+    // console.log(state[current_step][nn_name])
     // var size = d3.scaleLinear()
     //     .range([0, ])
     //     .domain([-1,1])
@@ -1083,17 +1102,17 @@ function plot_state_update(state, block_number){
         return 'Output values of layer block (first feature channel): ' + (block_number + 1)
     })
 
-    var size_x = plot_width / state[current_step][0].length
-    var size_y = plot_height / state[current_step][0][0].length
+    var size_x = plot_width / state[current_step][nn_name][block_number][0].length
+    var size_y = plot_height / state[current_step][nn_name][block_number][0][0].length
     var myColor = d3.scaleLinear()
         .range(['#9eacc9', "#491d88"])
         .domain([-1,1])
     var state_dicts = []
-    for (var i = 0; i<state[current_step][0].length; i++){
-        for (var j = 0; j<state[current_step][0][i].length; j++){
+    for (var i = 0; i<state[current_step][nn_name][block_number][0].length; i++){
+        for (var j = 0; j<state[current_step][nn_name][block_number][0][i].length; j++){
             let tmp = [];
             for (k in state){
-                tmp.push(state[k][0][i][j]);
+                tmp.push(state[k][nn_name][block_number][0][i][j]);
             }
             // console.log(tmp)
             state_dicts.push({'x': i * size_x, 'y': j * size_y, 'val': tmp})
@@ -1246,7 +1265,7 @@ function update_stroke_desc(name, data){
             state_dicts.push({'x': i * width, 'y': j * height, 'val': tmp})
         }
     }
-    console.log(state_dicts)
+    // console.log(state_dicts)
     var plot = svg
         .select('.stroke_heatmap')
         .selectAll('rect')
@@ -1309,4 +1328,210 @@ function update_stroke_desc(name, data){
 
     
     plot.exit().remove()
+}
+
+
+function plot_pixelshuffle(){
+    window.selected_nn_sub_block = 0
+    // console.log('WW')
+    var pixelshuffle_width = x(stroke_block_width)// + x(stroke_block_width) + 50
+    var pixelshuffle_height = x(nn_block_height * 3)
+
+    var sub_layer_width = 100
+    var sub_layer_height = 100 / 4 - 3
+
+    var layer_height = sub_layer_height / 4
+
+    pixelshuffle_x = d3.scaleLinear()
+        .domain([0, 100])
+        .range([0, (pixelshuffle_width)])
+    pixelshuffle_y = d3.scaleLinear()
+        .domain([0, 100])
+        .range([0, (pixelshuffle_height)])
+
+    // var plot = svg
+    //     .selectAll('.dcgan_plot')
+    //     .data(data['dcgan_plot'])
+    //     .enter()
+    //     .append('g')
+    //     .attr('transform', function(d) { 
+    //         return 'translate(' + x(horisontal_margin) + 
+    //         ',' + (x(vertical_margin) + x(nn_block_height) + 25) + ')'; })
+    //     .classed('dcgan_plot', true)
+
+    var plot = svg
+        .append('g')
+        .attr('transform', function(d) { 
+                return 'translate(' + x(horisontal_margin) + 
+                ',' + (x(vertical_margin) + x(nn_block_height) + 25) + ')'; })
+            .classed('pixelshuffle_plot', true)
+
+    plot
+        .append('rect')
+        .attr("width", pixelshuffle_x(100))
+        .attr("height", pixelshuffle_y(100))
+        .attr("rx", 6)
+        .attr("ry", 6)
+        .classed("custom-header-simple", true)
+
+    shift_v = pixelshuffle_y(2)
+    var sub_layer = plot
+        .selectAll('g')
+        .data([{'layers': [{'i': 0, 'name': 'Linear', 'input_shape': 'None; 5', 'output_shape': 'None; 2048'}, {'i': 1, 'name': 'ReLU'}, {'i': 2, 'name': 'Linear'}, {'i': 3, 'name': 'ReLU'}, {'i': 4, 'name': 'Linear'}, {'i': 5, 'name': 'ReLU'}], 'i': 0}, 
+               {'layers': [{'i': 0, 'name': 'Conv2D', 'input_shape': 'None; 8; 16; 16', 'output_shape': 'None; 12; 16; 16'}, {'i': 1, 'name': 'ReLU'}, {'i': 2, 'name': 'Conv2D'}], 'i': 1}, 
+               {'layers': [{'i': 0, 'name': 'PixelShuffle', 'input_shape': 'None; 12; 16; 16', 'output_shape': 'None; 3; 32; 32'}], 'i': 2}])
+        .enter()
+        .append('g')
+        .datum(function(d, i){
+            return d
+        })
+        .attr("width", pixelshuffle_x(sub_layer_width))
+        .attr("height", function(d){
+            // console.log(d)
+            return pixelshuffle_y(layer_height) * d.layers.length + d.layers.length * pixelshuffle_y(2) + pixelshuffle_y(2)
+        })
+        .attr('transform', function(d, index) { 
+                    // console.log(d, index)
+                    res = 'translate(' + pixelshuffle_x(0) + 
+                    ',' + shift_v + ')'; 
+                    shift_v += pixelshuffle_y(layer_height) * d.layers.length + d.layers.length * pixelshuffle_y(2) + pixelshuffle_y(2) + pixelshuffle_y(layer_height)
+                    return res})
+        .classed('pixelshuffle_sub_layer', true)
+        .on('click', function(event, d, i){
+            // console.log(event, d)
+            d3.selectAll('.pixelshuffle_sub_layer').selectAll('rect').classed('custom-header-selected', false)
+            d3.select(this).selectAll('.sub_layer').classed('custom-header-selected', true)
+            plot_state_update(data_processed['states'], d.i, 'pixelsuffle')
+        })
+        .on("mousemove", function(event, d){
+            // console.log(event, d)
+            // console.log(d3.pointer(event))
+
+            tooltip_shapes_input
+                .style('opacity', 1.0);
+            tooltip_shapes_input
+                .html(d.layers[0]['input_shape'])
+                .style("left", (event.layerX - d3.pointer(event)[0]) + "px")
+                .style("top", (event.layerY - d3.pointer(event)[1] - 27) + "px")
+            
+            tooltip_shapes_output
+                .style('opacity', 1.0);
+            tooltip_shapes_output
+                .html(d.layers[0]['output_shape'])
+                .style("left", (event.layerX - d3.pointer(event)[0]) + "px")
+                .style("top", (pixelshuffle_y(layer_height) * d.layers.length + d.layers.length * pixelshuffle_y(2) + pixelshuffle_y(2) + event.layerY - d3.pointer(event)[1] + 2) + "px")
+            
+        })
+        .on("mouseout", function(d) {		
+            tooltip
+                // .transition()		
+                // .duration(500)		
+                .style("opacity", 0);			
+            tooltip_shapes_input	
+                .style("opacity", 0);		
+            tooltip_shapes_output	
+                .style("opacity", 0);
+        })
+
+    sub_layer
+        .append('rect')
+        .datum(function(d){ return d})
+        // .attr('')
+        .attr("width", pixelshuffle_x(sub_layer_width))
+        .attr("height", function(d){
+            // console.log(d)
+            return pixelshuffle_y(layer_height) * d.layers.length + d.layers.length * pixelshuffle_y(2) + pixelshuffle_y(2)
+        })
+        .attr("rx", 6)
+        .attr("ry", 6)
+        .classed("custom-header", true)
+        .classed("sub_layer", true)
+
+    var pixelshuffle_layers = sub_layer.selectAll('g')
+        .data(function(d){
+            // console.log(d)
+            return d.layers
+        })
+        .enter()
+        .append('g')
+        .datum(function(d, i){ d['i'] = i; return d})
+        .attr('transform', function(d) {
+            console.log(d)
+            if (d.i == 0){
+                shift_v = pixelshuffle_y(2)
+            }
+            // console.log(d, index)
+            res = 'translate(' + (pixelshuffle_x(sub_layer_width) - pixelshuffle_x(sub_layer_width - 15))/2 + 
+            ',' + shift_v + ')'; 
+            shift_v += pixelshuffle_y(2) + (pixelshuffle_y(layer_height))
+            return res})
+        .on('click', function(event, d){
+            // console.log(d)
+            // plot_layer_desc_update(d.name)
+        })
+        .on("mousemove", function(event, d){
+            // console.log(d)
+            tooltip
+                .style('opacity', 1.0);
+            tooltip
+                .html(d['name'] + ': ' + layers_desc[d.name]['text'])
+                .style("left", (event.layerX+ 15) + "px")		
+                .style("top", (event.layerY - 28) + "px")
+                // .attr("left", event.layerX + "")		
+                // .attr("top", event.layerY - 28 + "");
+        })
+        .on("mouseout", function(d) {		
+            tooltip
+                // .transition()		
+                // .duration(500)		
+                .style("opacity", 0);	
+        })
+
+    pixelshuffle_layers
+        .append('rect')
+        .attr("width", pixelshuffle_x(sub_layer_width - 15))
+        .attr("height", pixelshuffle_y(layer_height))
+        .classed("custom-header", true)
+        .on('click', function(event, d){
+            // console.log(d)
+        })
+
+    pixelshuffle_layers
+        .append('text')
+        // .attr('transform', function(d) {
+        //     if (d.i == 0){
+        //         shift_v = (dcgan_y(sub_layer_height) - 3*dcgan_y(layer_height))/2 - dcgan_y(1) + dcgan_y(layer_height) / 1.25
+        //     }
+        //     // console.log(d, index)
+        //     res = 'translate(' + ((dcgan_x(sub_layer_width) - dcgan_x(sub_layer_width - 15))/2 + dcgan_x(sub_layer_width - 15)/2) +
+        //     ',' + shift_v + ')'; 
+        //     shift_v += dcgan_y(1) + (dcgan_y(layer_height))
+        //     return res})
+        .attr('y', (pixelshuffle_y(layer_height))/1.5)
+        .attr('x', pixelshuffle_x(sub_layer_width - 15) / 2)
+        .style("text-anchor", "middle")
+        .text(function(d){ return d.name})
+            .classed('nn_text', true)
+            .style("text-anchor", "middle")
+            .on('click', function(event, d){
+                // console.log(d)
+            })
+            .on("mousemove", function(event, d){
+                // console.log(d)
+                tooltip
+                    .style('opacity', 1.0);
+                tooltip
+                    .html(d['name'])
+                    .style("left", (event.layerX+ 15) + "px")		
+                    .style("top", (event.layerY - 28) + "px")
+                    // .attr("left", event.layerX + "")		
+                    // .attr("top", event.layerY - 28 + "");
+            })
+            .on("mouseout", function(d) {		
+                tooltip
+                    // .transition()		
+                    // .duration(500)		
+                    .style("opacity", 0);	
+            })
+
 }

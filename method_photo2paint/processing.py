@@ -79,13 +79,14 @@ class PixelShuffleNet_32(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
-        buffer[0] = x[0].detach().cpu().numpy().astype(np.float16).tolist()
+        buffer[0] = [[x[0].detach().cpu().numpy().astype(np.float16).tolist()]]
         
         x = x.view(-1, 8, 16, 16)
         x = F.relu(self.conv1(x))
+        x = self.conv2(x)
         buffer[1] = x[0].detach().cpu().numpy().astype(np.float16).tolist()
         
-        x = self.pixel_shuffle(self.conv2(x))
+        x = self.pixel_shuffle(x)
         x = x.view(-1, 3, 32, 32)
         buffer[2] = x[0].detach().cpu().numpy().astype(np.float16).tolist()
         return x, buffer
@@ -334,7 +335,7 @@ def processing(image, num):
 
     history = []
     pt.step_id = 0
-    his_lim = 2
+    his_lim = 10
     for pt.m_grid in [1, 2, 3, 4, 5]:
         if len(history) >= his_lim:
             print(1)

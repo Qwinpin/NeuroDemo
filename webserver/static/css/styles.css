@@ -44,6 +44,10 @@ h1 {
 body{
     background-color: rgb(31, 29, 29)
 }
+
+.post_card_text{
+  color: rgb(202, 202, 202);
+}
 .post_ext{
     max-width:100%;
     font-family: "Helvetica", "Helvetica", monospace;

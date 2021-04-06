@@ -46,6 +46,7 @@ async function upload_image(key) {
                     plot_states(null)
                     plot_layer_desc()
                     plot_stroke_desc()
+                    plot_pixelshuffle()
                 }
 
                 d3.select('.layer_desc').select('#desc_text').html(("" + 'Step: ' + current_step + "<br>" +
