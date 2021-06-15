@@ -1,0 +1,45 @@
+.post_header2{
+    background-size:cover;
+    background-repeat:no-repeat;
+    background-position:center;
+    position:relative;
+    color:#fff;
+    height:48vh;
+    min-height:120px;
+    max-height:160px;
+    background-color:var(--bg);
+    margin-top:60px;
+    padding:30px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column}
+    
+.post_header2::after{
+    content:"";
+    position:absolute;
+    top:0;left:0;right:0;bottom:0;
+    z-index:1;
+    background:rgba(10,15,30,0.5)}
+    
+.post_header2 h1{color:inherit}
+
+.post_header2 h1,
+
+.post_header2 p,
+
+.post_header2 h4{position:relative;z-index:2}
+
+body{
+    background-color: rgb(31, 29, 29)
+}
+
+.post_card_text{
+  color: rgb(202, 202, 202);
+}
+.post_ext{
+    max-width:100%;
+    font-family: "Helvetica", "Helvetica", monospace;
+    font-size: 14pt;
+    color: rgb(202, 202, 202);
+}

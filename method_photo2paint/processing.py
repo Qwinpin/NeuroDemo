@@ -272,10 +272,10 @@ class ProgressivePainter(PainterBase):
 
     def _drawing_step_states(self):
         acc = self._compute_acc().item()
-        print('iteration step %d, G_loss: %.5f, step_acc: %.5f, grid_scale: %d / %d, strokes: %d / %d'
-              % (self.step_id, self.G_loss.item(), acc,
-                 self.m_grid, self.max_divide,
-                 self.anchor_id + 1, self.m_strokes_per_block))
+        # print('iteration step %d, G_loss: %.5f, step_acc: %.5f, grid_scale: %d / %d, strokes: %d / %d'
+        #       % (self.step_id, self.G_loss.item(), acc,
+        #          self.m_grid, self.max_divide,
+        #          self.anchor_id + 1, self.m_strokes_per_block))
         vis2 = utils.patches2img(self.G_final_pred_canvas, self.m_grid).clip(min=0, max=1)
         if self.args.disable_preview:
             pass
@@ -322,7 +322,7 @@ def processing(image, num):
     pt.net_G.load_state_dict(ttt['model_G_state_dict'])
     pt.net_G.eval()
 
-    print('begin drawing...')
+    # print('begin drawing...')
 
     history_params = np.zeros([1, 0, pt.rderr.d], np.float32)
     PARAMS = np.zeros([1, 0, pt.rderr.d], np.float32)
@@ -338,7 +338,7 @@ def processing(image, num):
     his_lim = 10
     for pt.m_grid in [1, 2, 3, 4, 5]:
         if len(history) >= his_lim:
-            print(1)
+            # print(1)
             break
         pt.img_batch = utils.img2patches(pt.img_, pt.m_grid, pt.net_G.out_size).to(device)
         pt.G_final_pred_canvas = CANVAS_tmp
@@ -351,14 +351,14 @@ def processing(image, num):
 
         pt.optimizer_x = optim.RMSprop([pt.x_ctt, pt.x_color, pt.x_alpha], lr=pt.lr, centered=True)
 
-        print(2)
+        # print(2)
         for pt.anchor_id in range(0, pt.m_strokes_per_block):
             if len(history) >= his_lim:
                 break
             pt.stroke_sampler(pt.anchor_id)
             iters_per_stroke = int(500 / pt.m_strokes_per_block)
             # save_per_each = iters_per_stroke
-            print(3)
+            # print(3)
             for i in range(iters_per_stroke):
                 if len(history) >= his_lim:
                     break         
@@ -426,7 +426,7 @@ def processing(image, num):
 
             
 
-        print(4)
+        # print(4)
         v = pt._normalize_strokes(pt.x)
         v = pt._shuffle_strokes_and_reshape(v)
         PARAMS = np.concatenate([PARAMS, v], axis=1)

@@ -64,6 +64,18 @@ async def image(image: UploadFile = File(...), id: int = 0, key: str = 'test', n
 
         return res
 
+
+@app.post("text={id}")
+async def text(text: str, id: int = 0, key: str = 'bert', num: int = 0):
+    if key == 'bert':
+        try:
+            r = requests.post('http://localhost:9052/text/{}?num={}?text={}'.format(id, num, text))
+            res = r.json()
+        except:
+            res = {}
+
+        return res
+
 # @app.post("/audio")
 # async def image(image: UploadFile = File(...)):
 
