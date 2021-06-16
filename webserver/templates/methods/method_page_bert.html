@@ -15,10 +15,12 @@
   <link rel = 'stylesheet' href = "{{ url_for('static', path='/css/styles.init.css')}}" integrity = 'sha512-kL89XmCENNwZGg2&#43;a//oZqedwbKNh64DLFsrkEO/&#43;40lVBlTdHBLYLI1TQKxILvRl5oecYXVzFZ&#43;oKGMJ4Q/og=='>
   <link rel = 'stylesheet' href = "{{ url_for('static', path='/css/styles.v2.css')}}">
   <script type="text/javascript" src="{{ url_for('static', path='/js/js.js') }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', path='/js/js2.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', path='/js/js.bert.js') }}"></script>
   <script src="https://d3js.org/d3.v6.min.js"></script>
   <script src="https://unpkg.com/d3-simple-slider"></script>
   <script src="https://d3js.org/d3-ease.v2.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.7/ScrollMagic.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.7/plugins/debug.addIndicators.min.js"></script>
 
 </head>
 
@@ -52,14 +54,26 @@
 </section>
 
 <div class = 'post post_ext'>
-  <article class='post_content'>
-     123124412125
-
+  <p class='post_ext'>
+    We introduce a new language representation model called BERT, which stands for Bidirectional Encoder 
+    Representations from Transformers. Unlike recent language representation models, BERT is designed to 
+    pre-train deep bidirectional representations from unlabeled text by jointly conditioning on both left 
+    and right context in all layers. As a result, the pre-trained BERT model can be fine-tuned with just 
+    one additional output layer to create state-of-the-art models for a wide range of tasks, such as 
+    question answering and language inference, without substantial task-specific architecture modifications.
+    BERT is conceptually simple and empirically powerful. It obtains new state-of-the-art results on eleven 
+    natural language processing tasks, including pushing the GLUE score to 80.5% (7.7% point absolute 
+    improvement), MultiNLI accuracy to 86.7% (4.6% absolute improvement), SQuAD v1.1 question answering Test 
+    F1 to 93.2 (1.5 point absolute improvement) and SQuAD v2.0 Test F1 to 83.1 (5.1 point absolute 
+    improvement). [<a href="https://arxiv.org/abs/1810.04805">link</a>]
+  </p>
+</div>
+<div id="result">
 </div>
 
-
 <script>
-  this.method_id = 'test'
+  this.method_id = 'bert'
+  init_plot()
 </script>
     
 </article>
