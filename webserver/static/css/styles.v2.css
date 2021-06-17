@@ -133,3 +133,39 @@ body{
     border-radius: 6px;		
     stroke-width: 1px;	
 }
+
+
+.tokens_embedding{
+    fill: none;
+    stroke: rgb(202, 202, 202);
+    /* border: 2px solid ;	 */
+    border-radius: 6px;		
+    stroke-width: 1px;	
+}
+
+
+.tokens_embedder{
+    fill: none;
+    stroke: rgb(202, 202, 202);
+    /* border: 2px solid ;	 */
+    border-radius: 6px;		
+    stroke-width: 1px;	
+}
+
+
+.positional_embedding{
+    fill: none;
+    stroke: rgb(202, 202, 202);
+    /* border: 2px solid ;	 */
+    border-radius: 6px;		
+    stroke-width: 1px;	
+}
+
+
+.positional_embedder{
+    fill: none;
+    stroke: rgb(202, 202, 202);
+    /* border: 2px solid ;	 */
+    border-radius: 6px;		
+    stroke-width: 1px;	
+}

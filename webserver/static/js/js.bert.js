@@ -1,5 +1,15 @@
 window.main_plot = null;
 window.text_to_process = ''
+window.current_step = 0
+window.processed_data = {
+    'tokens': ['In', 'put', 't', 'ext'],
+    'tokens_embedding': [
+        [0.0, 0.1, 0.2, 0.3],
+        [0.1, 0.2, 0.3, 0.4],
+        [0.3, 0.4, 0.5, 0.6],
+        [0.4, 0.5, 0.6, 0.7]
+    ]
+}
 
 
 function init_plot(){
@@ -25,7 +35,8 @@ function init_plot(){
 
     init_menu();
     plot_text_input();
-    plot_tokenization(['In', 'put', 't', 'ext'])
+    prepare_plot();
+    // plot_tokenization(['In', 'put', 't', 'ext'])
 }
 
 
@@ -119,6 +130,40 @@ function init_menu(){
         .attr("cx", menu_blocks_width / 2)
         .attr("cy", menu_blocks_width / 2)
         .classed("custom-header", true)
+        .on('click', function(event, d){
+            var forward
+            if (d.short_name == 'right_arrow'){
+                current_step += 1
+                forward = true
+            }
+
+            if (d.short_name == 'left_arrow'){
+                current_step -= 1
+                forward = false
+            }
+
+            if (current_step < 0){
+                current_step = 0
+            }
+            if (current_step > 13){
+                current_step = 13
+            }
+
+            if (current_step === 1){
+                plot_tokenization(processed_data['tokens'], forward)
+            }
+            if (current_step === 2){
+                // plot_tokenization(processed_data2, forward)
+                plot_token_embeddings(processed_data['tokens_embedding'], forward)
+            }
+            if (current_step === 3){
+                plot_positional_embedding(processed_data['tokens_embedding'], forward)
+            }
+
+            if (current_step == 0){
+                clear_plot()
+            }
+        })
 
 
     var menu_arrows = main_menu
@@ -215,52 +260,279 @@ function plot_text_input(){
 
 
 function update_data(text){
-    console.log('Oops', text)
+    tokens = text.split(" ")
+    processed_data['tokens'] = tokens
+    if (current_step === 1){
+        plot_tokenization(processed_data['tokens'], true)
+    }
 }
 
 
-function plot_tokenization(data){
-    var plot_width = main_plot_scale_x(98)
-    var plot_height = main_plot_scale_y(70)
-    window.plot_tokens = d3.select('#main_plot')
+function prepare_plot(){
+    window.plot_pipeline_width = main_plot_scale_x(98)
+    window.plot_pipeline_height = main_plot_scale_y(70)
+
+    window.plot_pipeline = d3.select('#main_plot')
         .append('g')
-        .attr('width', plot_width)
+        .attr('width', plot_pipeline_width)
         .attr('transform', 'translate(' + main_plot_scale_x(1) + ',' + main_plot_scale_y(25) + ')')
-        .attr('height', plot_height)
+        .attr('height', plot_pipeline_height)
+}
 
-    var tokens_block = plot_tokens
-        .append('g')
-        .attr('transform', 'translate(' + 0 + ',' + (plot_height * 0.01) + ')')
 
-    v_shift = 0
-    var tokens_height = plot_height * 0.07
-    var tokens_width = plot_width * 0.1
-    var tokens_margin = plot_width * 0.01
+function clear_plot(){
+    plot_pipeline.selectAll('*')
+        .remove()
+}
 
-    var tokens = tokens_block
-        .selectAll('.tokens')
+
+function plot_tokenization(data, forward=true){
+    if (!forward){
+        plot_pipeline
+            .selectAll('.tokens_embedding')
+            .selectAll('rect')
+            .transition().duration(200)
+            .attr('width', 0)
+            .remove()
+
+        plot_pipeline
+            .selectAll('.tokens_embedder')
+            .transition().delay(200).duration(200)
+            .attr('width', 0)
+            .remove()
+
+        plot_pipeline
+            .selectAll('.tokens_embedding')
+    }
+    if (true){
+        v_shift = 0
+        window.tokens_height = plot_pipeline_height * 0.07
+        window.tokens_width = plot_pipeline_width * 0.15
+        window.tokens_margin = plot_pipeline_width * 0.01
+    
+        var tokens = plot_pipeline
+            .selectAll('.tokens')
+            .data(data)
+    
+        tokens
+            .enter()
+            .append('rect')
+            .classed('tokens', true)
+            .attr('transform', function(d, i){
+                v_shift = (i * (tokens_height + tokens_margin))
+                let res = 'translate(' + 0 + ',' + (tokens_height + v_shift) + ')'
+                return res
+            })
+            .attr('height', tokens_height)
+            .transition().duration(200)
+            .attr('width', tokens_width)
+    
+        tokens
+            .exit()
+            .transition().duration(200)
+            .attr('width', 0)
+            .remove()
+
+        var tokens_text = plot_pipeline
+            .selectAll('.tokens_text')
+            .data(data)
+
+        v_shift = 0
+        tokens_text
+            .enter()
+            .append('text')
+            .classed('tokens_text', true)
+            .classed('nn_text', true)
+            .text(function(d){
+                return d;
+            })
+            .attr('transform', function(d, i){
+                v_shift = (i * (tokens_height + tokens_margin))
+                let res = 'translate(' + 0 + ',' + (tokens_height + v_shift) + ')'
+                return res
+            })
+            .attr('x', tokens_width / 2)
+            .attr('y', (tokens_height / 2 + 8))
+            .style("text-anchor", "middle")
+        
+        tokens_text
+            .text(function(d){
+                return d;
+            })
+
+        tokens_text
+            .exit()
+            .remove()
+    }
+}
+
+
+function plot_token_embeddings(data, forward=true){
+    if (!forward){
+        plot_pipeline
+            .select('.positional_embedder')
+            .transition().duration(500)
+            .attr('y', -10000)
+            .remove()
+
+        plot_pipeline
+            .selectAll('.positional_embedding')
+            .transition().duration(200)
+            .attr('width', 0)
+            .remove()
+    }
+    window.token_embedder_height = tokens_height * data.length + tokens_margin * (data.length - 1);
+    window.token_embedder_width = tokens_width / 2
+
+    window.token_embedding_width = tokens_width / 5
+    window.token_embedding_height = tokens_height
+    window.token_embedding_margin = tokens_margin
+
+    var tokens = plot_pipeline
+        .selectAll('.tokens_embedding')
         .data(data)
+    
+    tokens
         .enter()
         .append('g')
-        .attr('transform', function(d){
-            let res = 'translate(' + 0 + ',' + (tokens_height + v_shift) + ')'
-            v_shift += tokens_height + tokens_margin
+        .classed('tokens_embedding', true)
+        .attr('transform', function(d, i){
+            v_shift = (i * (token_embedding_height + token_embedding_margin))
+            h_shift = 2 * tokens_width + 2 * tokens_margin
+            let res = 'translate(' + h_shift + ',' + (token_embedding_height + v_shift) + ')'
             return res
         })
-    tokens
-        .append('rect')
-        .attr('width', tokens_width)
-        .attr('height', tokens_height)
-        .classed('tokens', true)
-        .classed('custom-header', true)
+        .attr('d', function(d){
+            return d
+        })
+
+    plot_pipeline
+        .selectAll('.tokens_embedding')
+        .transition().duration(300)
+        .attr('transform', function(d, i){
+            v_shift = (i * (token_embedding_height + token_embedding_margin))
+            h_shift = 2 * tokens_width + 2 * tokens_margin
+            let res = 'translate(' + h_shift + ',' + (token_embedding_height + v_shift) + ')'
+            return res
+        })
 
     tokens
-        .append('text')
-        .text(function(d){
-            return d;
+        .exit()
+        .transition().duration(200)
+        .attr('width', 0)
+        .remove()
+
+    plot_pipeline
+        .selectAll('.tokens_embedding')
+        .datum(function(d, i){
+            return d
         })
-        .attr('x', tokens_width / 2)
-        .attr('y', (tokens_height / 2 + 8))
-        .style("text-anchor", "middle")
-        .classed('nn_text', true)
+        .selectAll('rect')
+        .data(function(d){
+            return d
+        })
+        .enter()
+        .append('rect')
+        .attr('height', token_embedding_height)
+        .transition().delay(200).duration(200)
+        .attr('width', token_embedding_height)
+        .attr('transform', function(d, i){
+            h_shift = i * (token_embedding_width + token_embedding_margin * 0.15)
+            let res = 'translate(' + h_shift + ',' + 0 + ')'
+            return res
+        })
+
+    var tokens_embedder = plot_pipeline
+        .append('rect')
+        .classed('tokens_embedder', true)
+        .attr('height', token_embedder_height)
+        .attr('transform', function(d, i){
+            h_shift = tokens_width + tokens_margin + token_embedder_width / 2
+            let res = 'translate(' + h_shift + ',' + token_embedding_height + ')'
+            return res
+        })
+        .transition().duration(200)
+        .attr('width', token_embedder_width)
+        
+}
+
+
+function plot_positional_embedding(data, forward=true){
+    if (forward){
+        plot_pipeline
+            .select('.tokens_embedder')
+            .transition().duration(500)
+            .attr('y', 10000)
+            .remove()
+
+        plot_pipeline
+            .selectAll('.tokens_embedding')
+            .transition().duration(200)
+            .attr('transform', function(d, i){
+                v_shift = (i * (token_embedding_height + token_embedding_margin))
+                h_shift = 3 * tokens_width + 3 * tokens_margin
+                let res = 'translate(' + h_shift + ',' + (token_embedding_height + v_shift) + ')'
+                return res
+            })
+            
+    }
+    var positional_embedding_width = tokens_width / 5
+    var positional_embedding_height = tokens_height
+    var positional_embedding_margin = tokens_margin
+
+    var tokens = plot_pipeline
+        .selectAll('.positional_embedding')
+        .data(data)
+    
+    tokens
+        .enter()
+        .append('g')
+        .classed('positional_embedding', true)
+        .attr('transform', function(d, i){
+            v_shift = (i * (positional_embedding_height + positional_embedding_margin))
+            h_shift = 2 * tokens_width + 2 * tokens_margin
+            let res = 'translate(' + h_shift + ',' + (positional_embedding_height + v_shift) + ')'
+            return res
+        })
+        .attr('d', function(d){
+            return d
+        })
+
+    tokens
+        .exit()
+        .transition().duration(200)
+        .attr('width', 0)
+        .remove()
+
+    plot_pipeline
+        .selectAll('.positional_embedding')
+        .datum(function(d, i){
+            return d
+        })
+        .selectAll('rect')
+        .data(function(d){
+            return d
+        })
+        .enter()
+        .append('rect')
+        .attr('height', positional_embedding_height)
+        .transition().delay(200).duration(200)
+        .attr('width', positional_embedding_height)
+        .attr('transform', function(d, i){
+            h_shift = i * (positional_embedding_width + positional_embedding_margin * 0.15)
+            let res = 'translate(' + h_shift + ',' + 0 + ')'
+            return res
+        })
+
+    var tokens_embedder = plot_pipeline
+        .append('rect')
+        .classed('positional_embedder', true)
+        .attr('height', token_embedder_height)
+        .attr('transform', function(d, i){
+            h_shift = tokens_width + tokens_margin + token_embedder_width / 2
+            let res = 'translate(' + h_shift + ',' + token_embedding_height + ')'
+            return res
+        })
+        .transition().duration(200)
+        .attr('width', token_embedder_width)
 }
